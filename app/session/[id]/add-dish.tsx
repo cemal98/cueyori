@@ -4,132 +4,24 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import { AppText, Button, Card, Screen, TextField } from "../../../src/components";
 import {
+  buildStageInput,
   cookingActionLabels,
+  cookingActionTypes,
+  parseNonNegativeInteger,
+  parsePositiveInteger,
+  sortStageDrafts,
   syncCookingSessionNotifications,
   useCookingStore,
+  validateDishFields,
+  validateStageFields,
   type CookingActionType,
-  type CookingSession,
-  type StageInput,
+  type DishFormErrors,
+  type DishStageDraft,
 } from "../../../src/features/cooking";
 import { colors, radii, spacing } from "../../../src/theme";
 
-type StageDraft = {
-  title: string;
-  offsetMinutes: number;
-  actionType: CookingActionType;
-};
-
-type FieldErrors = {
-  dishName?: string;
-  duration?: string;
-  stageTitle?: string;
-  stageOffset?: string;
-  stages?: string;
-};
-
-const actionTypes: CookingActionType[] = [
-  "prep",
-  "start",
-  "add_ingredient",
-  "stir",
-  "flip",
-  "lower_heat",
-  "raise_heat",
-  "check",
-  "remove_from_heat",
-  "rest",
-  "finish",
-];
-
 const getRouteId = (id: string | string[] | undefined): string | undefined =>
   Array.isArray(id) ? id[0] : id;
-
-const parsePositiveInteger = (value: string): number | undefined => {
-  if (!value.trim()) {
-    return undefined;
-  }
-
-  const parsed = Number(value);
-
-  if (!Number.isInteger(parsed) || parsed <= 0) {
-    return undefined;
-  }
-
-  return parsed;
-};
-
-const parseNonNegativeInteger = (value: string): number | undefined => {
-  if (!value.trim()) {
-    return undefined;
-  }
-
-  const parsed = Number(value);
-
-  if (!Number.isInteger(parsed) || parsed < 0) {
-    return undefined;
-  }
-
-  return parsed;
-};
-
-const validateDishFields = (
-  dishName: string,
-  durationMinutes: number | undefined,
-  stages: StageDraft[],
-): FieldErrors => {
-  const errors: FieldErrors = {};
-
-  if (!dishName.trim()) {
-    errors.dishName = "Dish name is required.";
-  }
-
-  if (!durationMinutes) {
-    errors.duration = "Duration must be a positive number.";
-  }
-
-  if (stages.length === 0) {
-    errors.stages = "Add at least one stage.";
-  } else if (
-    durationMinutes !== undefined &&
-    stages.some((stage) => stage.offsetMinutes > durationMinutes)
-  ) {
-    errors.stages = "Every stage offset must fit inside dish duration.";
-  }
-
-  return errors;
-};
-
-const validateStageFields = (
-  stageTitle: string,
-  stageOffset: number | undefined,
-  durationMinutes: number | undefined,
-): FieldErrors => {
-  const errors: FieldErrors = {};
-
-  if (!stageTitle.trim()) {
-    errors.stageTitle = "Stage title is required.";
-  }
-
-  if (stageOffset === undefined) {
-    errors.stageOffset = "Offset must be zero or more.";
-  } else if (durationMinutes !== undefined && stageOffset > durationMinutes) {
-    errors.stageOffset = "Offset must fit inside dish duration.";
-  }
-
-  if (!durationMinutes) {
-    errors.duration = "Add a valid dish duration first.";
-  }
-
-  return errors;
-};
-
-const buildStageInput = (stage: StageDraft, order: number): StageInput => ({
-  title: stage.title.trim(),
-  actionType: stage.actionType,
-  offsetMinutes: stage.offsetMinutes,
-  order,
-  notificationEnabled: true,
-});
 
 export default function AddDishScreen() {
   const router = useRouter();
@@ -142,8 +34,8 @@ export default function AddDishScreen() {
   const [stageTitle, setStageTitle] = useState("");
   const [stageOffset, setStageOffset] = useState("");
   const [actionType, setActionType] = useState<CookingActionType>("prep");
-  const [stages, setStages] = useState<StageDraft[]>([]);
-  const [errors, setErrors] = useState<FieldErrors>({});
+  const [stages, setStages] = useState<DishStageDraft[]>([]);
+  const [errors, setErrors] = useState<DishFormErrors>({});
   const [isSaving, setIsSaving] = useState(false);
 
   const session = useMemo(
@@ -192,14 +84,14 @@ export default function AddDishScreen() {
     }
 
     setStages((currentStages) =>
-      [
+      sortStageDrafts([
         ...currentStages,
         {
           title: stageTitle.trim(),
           offsetMinutes: stageOffsetMinutes ?? 0,
           actionType,
         },
-      ].sort((first, second) => first.offsetMinutes - second.offsetMinutes),
+      ]),
     );
     setStageTitle("");
     setStageOffset("");
@@ -354,7 +246,7 @@ export default function AddDishScreen() {
           <View style={styles.selectorStack}>
             <AppText variant="label">Action type</AppText>
             <View style={styles.actionGrid}>
-              {actionTypes.map((currentActionType) => {
+              {cookingActionTypes.map((currentActionType) => {
                 const isSelected = currentActionType === actionType;
 
                 return (

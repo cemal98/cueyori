@@ -47,6 +47,20 @@ export {
   stageStatusLabels,
   timelineStatusLabels,
 } from "./utils/cookingLabels";
+export {
+  buildStageInput,
+  buildStageUpdates,
+  cookingActionTypes,
+  parseNonNegativeInteger,
+  parsePositiveInteger,
+  sortStageDrafts,
+  validateDishFields,
+  validateStageFields,
+} from "./utils/dishForm";
+export type {
+  DishFormErrors,
+  DishStageDraft,
+} from "./utils/dishForm";
 export { createDemoCookingSession } from "./utils/createDemoCookingSession";
 export {
   completeCookingStage,

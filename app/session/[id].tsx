@@ -167,6 +167,23 @@ export default function ActiveCookingSessionScreen() {
     });
   }, [router, session]);
 
+  const handleEditDish = useCallback(
+    (dishId: Dish["id"]) => {
+      if (!session) {
+        return;
+      }
+
+      router.push({
+        pathname: "/session/[id]/dish/[dishId]",
+        params: {
+          id: session.id,
+          dishId,
+        },
+      });
+    },
+    [router, session],
+  );
+
   const runSessionAction = useCallback(
     async (action: Exclude<BusyAction, undefined>, command: () => Promise<void>) => {
       if (busyAction) {
@@ -423,10 +440,22 @@ export default function ActiveCookingSessionScreen() {
                         {dish.totalMinutes} min, {dish.stages.length} cues
                       </AppText>
                     </View>
-                    <View style={styles.dishBadge}>
-                      <AppText tone="accent" variant="caption">
-                        {completedDishStages}/{dish.stages.length} done
-                      </AppText>
+                    <View style={styles.dishActions}>
+                      <View style={styles.dishBadge}>
+                        <AppText tone="accent" variant="caption">
+                          {completedDishStages}/{dish.stages.length} done
+                        </AppText>
+                      </View>
+                      <Button
+                        accessibilityLabel={`Edit ${dish.name}`}
+                        disabled={session.status === "finished"}
+                        onPress={() => {
+                          handleEditDish(dish.id);
+                        }}
+                        size="small"
+                        title="Edit"
+                        variant="ghost"
+                      />
                     </View>
                   </View>
 
@@ -526,6 +555,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentSoft,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
+  },
+  dishActions: {
+    alignItems: "flex-end",
+    gap: spacing.sm,
   },
   stageList: {
     gap: spacing.sm,
