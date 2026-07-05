@@ -3,6 +3,7 @@ import type { AccessibilityState } from "react-native";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { colors, radii, spacing } from "../../theme";
+import { playHaptic, type HapticIntent } from "../../utils/haptics";
 import { AppText } from "./AppText";
 
 type ButtonVariant = "primary" | "secondary" | "ghost";
@@ -15,7 +16,9 @@ type ButtonProps = {
   size?: ButtonSize;
   disabled?: boolean;
   accessibilityLabel?: string;
+  accessibilityHint?: string;
   leading?: ReactNode;
+  haptic?: HapticIntent | "none";
 };
 
 export function Button({
@@ -25,19 +28,31 @@ export function Button({
   size = "regular",
   disabled = false,
   accessibilityLabel,
+  accessibilityHint,
   leading,
+  haptic = "selection",
 }: ButtonProps) {
   const accessibilityState: AccessibilityState = {
     disabled,
   };
 
+  const handlePress = () => {
+    if (haptic !== "none") {
+      void playHaptic(haptic);
+    }
+
+    onPress();
+  };
+
   return (
     <Pressable
+      accessibilityHint={accessibilityHint}
       accessibilityLabel={accessibilityLabel ?? title}
       accessibilityRole="button"
       accessibilityState={accessibilityState}
       disabled={disabled}
-      onPress={onPress}
+      hitSlop={6}
+      onPress={handlePress}
       style={({ pressed }) => [
         styles.base,
         sizes[size],
@@ -49,6 +64,8 @@ export function Button({
       {leading ? <View style={styles.leading}>{leading}</View> : null}
       <AppText
         align="center"
+        adjustsFontSizeToFit
+        minimumFontScale={0.85}
         numberOfLines={1}
         tone={variant === "primary" ? "inverse" : "accent"}
         variant="label"

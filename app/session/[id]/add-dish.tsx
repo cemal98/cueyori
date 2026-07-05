@@ -2,7 +2,14 @@ import { useCallback, useMemo, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card, Screen, TextField } from "../../../src/components";
+import {
+  AppText,
+  Button,
+  Card,
+  Screen,
+  StateCard,
+  TextField,
+} from "../../../src/components";
 import {
   buildStageInput,
   cookingActionLabels,
@@ -169,10 +176,13 @@ export default function AddDishScreen() {
       <Screen>
         <View style={styles.header}>
           <Button onPress={handleBack} title="Back" variant="ghost" />
-          <AppText variant="title">Session not found</AppText>
-          <AppText tone="secondary">
-            Go back and choose an active cooking session.
-          </AppText>
+          <StateCard
+            actionTitle="Back"
+            message="Go back and choose an active cooking session."
+            onActionPress={handleBack}
+            title="Session not found"
+            tone="error"
+          />
         </View>
       </Screen>
     );
@@ -307,6 +317,7 @@ export default function AddDishScreen() {
                   </View>
                   <Button
                     accessibilityLabel={`Remove ${stage.title}`}
+                    haptic="warning"
                     onPress={() => {
                       handleRemoveStage(index);
                     }}
@@ -329,6 +340,7 @@ export default function AddDishScreen() {
 
       <Button
         disabled={isSaving || session.status === "finished"}
+        haptic="confirm"
         onPress={handleSave}
         title={isSaving ? "Saving" : "Save Dish"}
       />

@@ -7,6 +7,7 @@ import {
   Button,
   Card,
   Screen,
+  StateCard,
   TextField,
 } from "../../../../src/components";
 import {
@@ -320,10 +321,13 @@ export default function EditDishScreen() {
       <Screen>
         <View style={styles.header}>
           <Button onPress={handleBack} title="Back" variant="ghost" />
-          <AppText variant="title">Dish not found</AppText>
-          <AppText tone="secondary">
-            Go back and choose a dish from this cooking session.
-          </AppText>
+          <StateCard
+            actionTitle="Back"
+            message="Go back and choose a dish from this cooking session."
+            onActionPress={handleBack}
+            title="Dish not found"
+            tone="error"
+          />
         </View>
       </Screen>
     );
@@ -502,6 +506,7 @@ export default function EditDishScreen() {
                     <Button
                       accessibilityLabel={`Remove ${stage.title}`}
                       disabled={isFinished || isBusy}
+                      haptic="warning"
                       onPress={() => {
                         handleRemoveStage(index);
                       }}
@@ -526,11 +531,13 @@ export default function EditDishScreen() {
       <View style={styles.footerActions}>
         <Button
           disabled={isFinished || isBusy}
+          haptic="confirm"
           onPress={handleSave}
           title={saveMode === "saving" ? "Saving" : "Save Changes"}
         />
         <Button
           disabled={isFinished || isBusy}
+          haptic="warning"
           onPress={handleDeleteDish}
           title={saveMode === "deleting" ? "Deleting" : "Delete Dish"}
           variant="ghost"

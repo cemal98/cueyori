@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 import { CueYoriLoadingScreen } from "../src/components/brand/CueYoriLoadingScreen";
-import { AppText, Button, Card, Screen } from "../src/components";
+import { AppText, Button, Card, Screen, StateCard } from "../src/components";
 import {
   createDemoCookingSession,
   CueCard,
@@ -114,16 +114,27 @@ export default function HomeScreen() {
         </View>
 
         <Button
+          accessibilityHint="Creates a demo dinner workflow with chicken, rice, and pasta."
           accessibilityLabel="Start Cooking Session"
           disabled={isStartingSession}
+          haptic="confirm"
           onPress={handleStartCookingSession}
           title={isStartingSession ? "Preparing" : "Start Cooking Session"}
         />
       </View>
 
+      {isStartingSession ? (
+        <StateCard
+          message="CueYori is arranging your first chicken, rice, and pasta cues."
+          title="Preparing session"
+          tone="loading"
+        />
+      ) : null}
+
       {activeSession ? (
         <View style={styles.dashboardStack}>
           <Card
+            accessibilityHint="Opens the full cooking session timeline."
             accessibilityLabel="Open active cooking session"
             onPress={handleOpenActiveSession}
           >
@@ -174,16 +185,12 @@ export default function HomeScreen() {
           </View>
         </View>
       ) : (
-        <Card tone="muted">
-          <View style={styles.emptyState}>
-            <AppText align="center" variant="headline">
-              No session yet
-            </AppText>
-            <AppText align="center" tone="secondary" variant="body">
-              Kitchen is calm.
-            </AppText>
-          </View>
-        </Card>
+        <StateCard
+          actionTitle="Start Demo"
+          message="Start with a prepared dinner flow, then replace dishes with your own recipe timing."
+          onActionPress={handleStartCookingSession}
+          title="No active session"
+        />
       )}
     </Screen>
   );
@@ -220,10 +227,5 @@ const styles = StyleSheet.create({
   },
   dishList: {
     gap: spacing.md,
-  },
-  emptyState: {
-    alignItems: "center",
-    gap: spacing.sm,
-    paddingVertical: spacing["3xl"],
   },
 });

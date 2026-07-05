@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card, Screen } from "../../src/components";
+import { AppText, Button, Card, Screen, StateCard } from "../../src/components";
 import {
   completeCookingStage,
   CueCard,
@@ -271,10 +271,13 @@ export default function ActiveCookingSessionScreen() {
       <Screen>
         <View style={styles.header}>
           <Button onPress={handleGoHome} title="Back Home" variant="ghost" />
-          <AppText variant="title">Session not found</AppText>
-          <AppText tone="secondary">
-            This cooking session is no longer available.
-          </AppText>
+          <StateCard
+            actionTitle="Back Home"
+            message="This cooking session is no longer available."
+            onActionPress={handleGoHome}
+            title="Session not found"
+            tone="error"
+          />
         </View>
       </Screen>
     );
@@ -311,6 +314,7 @@ export default function ActiveCookingSessionScreen() {
 
         <Button
           accessibilityLabel="Add Dish"
+          accessibilityHint="Opens the dish and stage builder."
           disabled={session.status === "finished"}
           onPress={handleAddDish}
           title="Add Dish"
@@ -353,6 +357,7 @@ export default function ActiveCookingSessionScreen() {
             {canPause ? (
               <Button
                 disabled={controlsDisabled}
+                haptic="warning"
                 onPress={handlePause}
                 size="small"
                 title="Pause"
@@ -363,6 +368,7 @@ export default function ActiveCookingSessionScreen() {
             {canResume ? (
               <Button
                 disabled={controlsDisabled}
+                haptic="confirm"
                 onPress={handleResume}
                 size="small"
                 title="Resume"
@@ -372,6 +378,7 @@ export default function ActiveCookingSessionScreen() {
 
             <Button
               disabled={controlsDisabled || session.status === "finished"}
+              haptic="confirm"
               onPress={handleFinish}
               size="small"
               title={session.status === "finished" ? "Finished" : "Complete"}
@@ -379,6 +386,7 @@ export default function ActiveCookingSessionScreen() {
             />
             <Button
               disabled={controlsDisabled}
+              haptic="warning"
               onPress={handleReset}
               size="small"
               title="Reset"
@@ -448,6 +456,7 @@ export default function ActiveCookingSessionScreen() {
                       </View>
                       <Button
                         accessibilityLabel={`Edit ${dish.name}`}
+                        accessibilityHint="Opens dish timing and stage editing."
                         disabled={session.status === "finished"}
                         onPress={() => {
                           handleEditDish(dish.id);

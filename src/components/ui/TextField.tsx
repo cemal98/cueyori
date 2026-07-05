@@ -28,6 +28,10 @@ export function TextField({
       <AppText variant="label">{label}</AppText>
       <TextInput
         accessibilityLabel={label}
+        accessibilityHint={error}
+        accessibilityState={{
+          disabled: inputProps.editable === false,
+        }}
         keyboardType={keyboardType}
         onChangeText={onChangeText}
         placeholderTextColor={colors.charcoalSubtle}

@@ -1,17 +1,29 @@
+import { DynamicColorIOS, Platform, type ColorValue } from "react-native";
+
+type ThemeColor = {
+  light: string;
+  dark: string;
+};
+
+const adaptiveColor = ({ light, dark }: ThemeColor): ColorValue =>
+  Platform.OS === "ios" ? DynamicColorIOS({ light, dark }) : light;
+
 export const colors = {
-  background: "#f6efe5",
-  backgroundMuted: "#efe4d6",
-  surface: "#fffaf2",
-  surfaceMuted: "#f3e8da",
-  charcoal: "#24211d",
-  charcoalMuted: "#6f675e",
-  charcoalSubtle: "#91877c",
-  accent: "#c7663a",
-  accentDark: "#8f3f22",
-  accentSoft: "#f0c7ae",
-  success: "#5b7c4f",
-  border: "#e2d4c5",
-  inverse: "#fffaf2",
+  background: adaptiveColor({ light: "#f6efe5", dark: "#15110f" }),
+  backgroundMuted: adaptiveColor({ light: "#efe4d6", dark: "#1c1713" }),
+  surface: adaptiveColor({ light: "#fffaf2", dark: "#211b17" }),
+  surfaceMuted: adaptiveColor({ light: "#f3e8da", dark: "#2b241f" }),
+  charcoal: adaptiveColor({ light: "#24211d", dark: "#f7efe6" }),
+  charcoalMuted: adaptiveColor({ light: "#6f675e", dark: "#d4c6b9" }),
+  charcoalSubtle: adaptiveColor({ light: "#91877c", dark: "#a99b8f" }),
+  accent: adaptiveColor({ light: "#c7663a", dark: "#d78152" }),
+  accentDark: adaptiveColor({ light: "#8f3f22", dark: "#f0a06f" }),
+  accentSoft: adaptiveColor({ light: "#f0c7ae", dark: "#4a2b1f" }),
+  success: adaptiveColor({ light: "#5b7c4f", dark: "#9abb86" }),
+  warning: adaptiveColor({ light: "#a8662d", dark: "#e0a45f" }),
+  danger: adaptiveColor({ light: "#a94734", dark: "#e48672" }),
+  border: adaptiveColor({ light: "#e2d4c5", dark: "#3b3028" }),
+  inverse: adaptiveColor({ light: "#fffaf2", dark: "#15110f" }),
 } as const;
 
 export const spacing = {

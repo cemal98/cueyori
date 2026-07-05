@@ -81,6 +81,7 @@ export function CueCard({
           <Button
             accessibilityLabel={`${actionTitle} ${event.stageTitle}`}
             disabled={actionDisabled}
+            haptic="confirm"
             onPress={onActionPress}
             title={actionTitle}
             variant={isDue ? "secondary" : "primary"}

@@ -7,6 +7,8 @@ import {
   View,
 } from "react-native";
 
+import { colors } from "../../theme";
+
 const splashBase = require("../../../assets/brand/cueyori-splash-lockup-base.png");
 const splashHeat = require("../../../assets/brand/cueyori-splash-lockup-heat.png");
 
@@ -93,7 +95,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f8f3ea",
+    backgroundColor: colors.background,
     paddingHorizontal: 24,
   },
   lockup: {

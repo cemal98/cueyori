@@ -62,6 +62,7 @@ export function StageRow({
           isCompleted ? `Uncomplete ${stage.title}` : `Complete ${stage.title}`
         }
         disabled={disabled}
+        haptic={isCompleted ? "warning" : "confirm"}
         onPress={onToggle}
         size="small"
         title={isCompleted ? "Undo" : "Done"}

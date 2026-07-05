@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { colors, radii, spacing } from "../../theme";
+import { playHaptic } from "../../utils/haptics";
 
 type CardTone = "default" | "muted" | "accent" | "dark";
 
@@ -10,6 +11,7 @@ type CardProps = {
   tone?: CardTone;
   onPress?: () => void;
   accessibilityLabel?: string;
+  accessibilityHint?: string;
 };
 
 export function Card({
@@ -17,13 +19,21 @@ export function Card({
   tone = "default",
   onPress,
   accessibilityLabel,
+  accessibilityHint,
 }: CardProps) {
   if (onPress) {
+    const handlePress = () => {
+      void playHaptic("selection");
+      onPress();
+    };
+
     return (
       <Pressable
+        accessibilityHint={accessibilityHint}
         accessibilityLabel={accessibilityLabel}
         accessibilityRole="button"
-        onPress={onPress}
+        hitSlop={4}
+        onPress={handlePress}
         style={({ pressed }) => [
           styles.base,
           tones[tone],
