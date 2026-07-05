@@ -1,39 +1,59 @@
 # CueYori Deployment Plan
 
-## Fast path
-Use Expo EAS Build + EAS Submit.
+CueYori uses Expo EAS for production builds and store submission.
 
-## Accounts needed
-- Expo account
-- Apple Developer Program account
-- Google Play Console account
+## App Identity
 
-## Commands
+- Expo slug: `cueyori`
+- URL scheme: `cueyori`
+- iOS bundle identifier: `com.bydemirel.cueyori`
+- Android package: `com.bydemirel.cueyori`
+- App version: `0.1.0`
+- iOS build number: `1`
+- Android version code: `1`
+
+The source of truth is `app.config.ts`.
+
+## Local Checks
+
 ```bash
-npm install -g eas-cli
+npm ci
+npm run typecheck
+npm run expo:config
+npm run export:ios
+```
+
+## EAS Build
+
+```bash
 eas login
 eas init
-eas build:configure
+eas build --profile preview --platform ios
+eas build --profile production --platform ios
 ```
 
-## Builds
+Use `--platform android` or `--platform all` after Google Play credentials are ready.
+
+## EAS Submit
+
 ```bash
-eas build --profile preview --platform all
-eas build --profile production --platform all
+eas submit --profile production --platform ios
+eas submit --profile production --platform android
 ```
 
-## Submits
-```bash
-eas submit --platform ios --profile production
-eas submit --platform android --profile production
-```
+## GitHub Actions
 
-## CI/CD
-Use GitHub Actions only after local EAS build works.
+Workflows:
+
+- `.github/workflows/ci.yml`: typecheck, Expo config validation, iOS export
+- `.github/workflows/eas-preview.yml`: manual preview build
+- `.github/workflows/eas-production-submit.yml`: manual production build and submit
 
 Required GitHub secrets:
-- EXPO_TOKEN
-- APPLE_ID (optional for submit automation)
-- ASC_APP_ID (optional)
-- APPLE_TEAM_ID (optional)
-- GOOGLE_SERVICE_ACCOUNT_JSON (optional)
+
+- `EXPO_TOKEN`
+- `APPLE_ID`
+- `ASC_APP_ID`
+- `APPLE_TEAM_ID`
+
+Android submit will also need Google Play service account credentials before production release.

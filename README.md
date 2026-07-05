@@ -20,6 +20,8 @@ CueYori is an iOS-first cooking workflow assistant built with Expo, React Native
 ```bash
 npm install
 npm run typecheck
+npm run expo:config
+npm run export:ios
 npm run ios
 ```
 
