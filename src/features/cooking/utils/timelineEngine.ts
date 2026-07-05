@@ -72,12 +72,15 @@ const getScheduledAt = (
 ): ISODateString | undefined => {
   const startedAt = dish.startedAt ?? session.startedAt;
 
-  if (!startedAt) {
-    return undefined;
+  if (startedAt) {
+    return addMinutes(startedAt, stage.offsetMinutes);
   }
 
-  return addMinutes(startedAt, stage.offsetMinutes);
+  return stage.scheduledAt ?? stage.completedAt ?? session.finishedAt;
 };
+
+const getSessionStages = (session: CookingSession): CookingStage[] =>
+  session.dishes.flatMap((dish) => dish.stages);
 
 const getTimelineEventStatus = (
   stage: CookingStage,
@@ -173,6 +176,29 @@ export const getTimelineProgress = (
   now: ISODateString | Date = new Date(),
 ): TimelineProgress => {
   const timeline = generateTimeline(session, now);
+  const stages = getSessionStages(session);
+
+  if (timeline.length === 0 && stages.length > 0) {
+    const completedEvents = stages.filter(
+      (stage) =>
+        stage.status === "completed" ||
+        stage.status === "skipped" ||
+        Boolean(stage.completedAt),
+    ).length;
+    const totalEvents = stages.length;
+    const completionRatio = completedEvents / totalEvents;
+
+    return {
+      totalEvents,
+      completedEvents,
+      dueEvents: 0,
+      missedEvents: 0,
+      upcomingEvents: totalEvents - completedEvents,
+      completionRatio,
+      completionPercent: Math.round(completionRatio * 100),
+    };
+  }
+
   const completedEvents = timeline.filter(
     (event) => event.status === "completed",
   ).length;
@@ -231,11 +257,11 @@ export const formatRemainingTime = (
 
   const hours = Math.floor(remainingMinutes / 60);
   const minutes = remainingMinutes % 60;
-  const sign = remainingMilliseconds < 0 ? "-" : "";
   const parts = [
     hours > 0 ? `${hours}h` : undefined,
     minutes > 0 ? `${minutes}m` : undefined,
   ].filter((part): part is string => Boolean(part));
+  const timeLabel = parts.join(" ");
 
-  return `${sign}${parts.join(" ")}`;
+  return remainingMilliseconds < 0 ? `${timeLabel} late` : timeLabel;
 };

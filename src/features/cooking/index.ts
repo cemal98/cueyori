@@ -7,6 +7,13 @@ export type {
   StageUpdates,
 } from "./store/useCookingStore";
 export {
+  CueCard,
+  DishCard,
+  StageRow,
+  TimerBadge,
+  TimelineEventRow,
+} from "./components";
+export {
   cancelAllCookingNotifications,
   cancelSessionNotifications,
   cancelTimelineEventNotification,
@@ -34,3 +41,18 @@ export type {
   TimelineEventStatus,
   TimelineProgress,
 } from "./utils/timelineEngine";
+export {
+  cookingActionLabels,
+  sessionStatusLabels,
+  stageStatusLabels,
+  timelineStatusLabels,
+} from "./utils/cookingLabels";
+export { createDemoCookingSession } from "./utils/createDemoCookingSession";
+export {
+  completeCookingStage,
+  finishCookingSession,
+  pauseCookingSession,
+  resetCookingSession,
+  resumeCookingSession,
+  uncompleteCookingStage,
+} from "./utils/sessionCommands";

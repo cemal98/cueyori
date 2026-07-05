@@ -3,10 +3,12 @@ import { StatusBar } from "expo-status-bar";
 import { StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
+import { colors } from "../src/theme";
+
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false }} />
     </GestureHandlerRootView>
   );
@@ -15,6 +17,6 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: "#0a0a0a",
+    backgroundColor: colors.background,
   },
 });
