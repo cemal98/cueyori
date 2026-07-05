@@ -6,6 +6,19 @@ export type {
   StageInput,
   StageUpdates,
 } from "./store/useCookingStore";
+export {
+  cancelAllCookingNotifications,
+  cancelSessionNotifications,
+  cancelTimelineEventNotification,
+  requestCookingNotificationPermissions,
+  scheduleSessionNotifications,
+  scheduleTimelineEventNotification,
+} from "./services/notificationService";
+export type {
+  CookingNotificationPermissionResult,
+  CookingNotificationScheduleResult,
+  CookingNotificationSkipReason,
+} from "./services/notificationService";
 export type * from "./types/cooking.types";
 export {
   formatRemainingTime,
