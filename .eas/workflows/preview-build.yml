@@ -1,0 +1,10 @@
+name: preview-build
+on:
+  pull_request:
+    branches: [main]
+jobs:
+  build:
+    type: build
+    params:
+      platform: all
+      profile: preview

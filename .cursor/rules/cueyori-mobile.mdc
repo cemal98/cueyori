@@ -1,0 +1,17 @@
+---
+description: CueYori Expo React Native project rules
+globs: **/*
+---
+
+# CueYori Cursor Rules
+
+- Use Expo Router for navigation.
+- Use TypeScript everywhere.
+- Use Zustand for local state.
+- Use Expo Notifications for local cooking cues.
+- Keep business logic out of screens; put cooking logic under `src/features/cooking`.
+- Keep notification scheduling under `src/services/notifications`.
+- Prefer small components.
+- No backend until MVP workflow works locally.
+- UI should feel premium, calm, and native.
+- Every cooking action should map to a clear next user action.
