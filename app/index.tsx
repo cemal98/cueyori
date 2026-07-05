@@ -15,7 +15,7 @@ import {
   TimerBadge,
   useCookingStore,
 } from "../src/features/cooking";
-import { spacing } from "../src/theme";
+import { brand, spacing } from "../src/theme";
 
 const loadingIntroDurationMs = 2600;
 const dashboardRefreshMs = 30000;
@@ -107,9 +107,9 @@ export default function HomeScreen() {
     <Screen>
       <View style={styles.header}>
         <View style={styles.brandBlock}>
-          <AppText variant="largeTitle">CueYori</AppText>
+          <AppText variant="largeTitle">{brand.name}</AppText>
           <AppText tone="secondary" variant="body">
-            Cook everything. Right on cue.
+            {brand.tagline}
           </AppText>
         </View>
 

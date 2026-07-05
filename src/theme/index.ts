@@ -1,4 +1,9 @@
-import { DynamicColorIOS, Platform, type ColorValue } from "react-native";
+import {
+  DynamicColorIOS,
+  Platform,
+  type ColorValue,
+  type TextStyle,
+} from "react-native";
 
 type ThemeColor = {
   light: string;
@@ -26,6 +31,19 @@ export const colors = {
   inverse: adaptiveColor({ light: "#fffaf2", dark: "#15110f" }),
 } as const;
 
+export const brand = {
+  name: "CueYori",
+  tagline: "Cook everything. Right on cue.",
+  scheme: "cueyori",
+  bundleIdentifier: "com.bydemirel.cueyori",
+  assets: {
+    appIcon: "./assets/brand/cueyori-app-icon.png",
+    splashSource: "./assets/brand/cueyori-splash-source.png",
+    splashBase: "./assets/brand/cueyori-splash-lockup-base.png",
+    splashHeat: "./assets/brand/cueyori-splash-lockup-heat.png",
+  },
+} as const;
+
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -44,5 +62,12 @@ export const radii = {
 } as const;
 
 export const typography = {
-  family: undefined,
+  family: undefined as TextStyle["fontFamily"],
+  weights: {
+    regular: "400",
+    medium: "500",
+    semibold: "600",
+    bold: "700",
+  } satisfies Record<string, TextStyle["fontWeight"]>,
+  tabularNumbers: ["tabular-nums"] as TextStyle["fontVariant"],
 } as const;

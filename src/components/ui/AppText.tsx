@@ -1,7 +1,7 @@
 import type { TextProps } from "react-native";
 import { StyleSheet, Text } from "react-native";
 
-import { colors } from "../../theme";
+import { colors, typography } from "../../theme";
 
 type AppTextVariant =
   | "largeTitle"
@@ -58,6 +58,7 @@ export function AppText({
 const styles = StyleSheet.create({
   base: {
     color: colors.charcoal,
+    fontFamily: typography.family,
     includeFontPadding: false,
   },
 });
@@ -65,43 +66,44 @@ const styles = StyleSheet.create({
 const variants = StyleSheet.create({
   largeTitle: {
     fontSize: 40,
-    fontWeight: "700",
+    fontWeight: typography.weights.bold,
     letterSpacing: 0,
     lineHeight: 46,
   },
   title: {
     fontSize: 28,
-    fontWeight: "700",
+    fontWeight: typography.weights.bold,
     letterSpacing: 0,
     lineHeight: 34,
   },
   headline: {
     fontSize: 20,
-    fontWeight: "700",
+    fontWeight: typography.weights.bold,
     letterSpacing: 0,
     lineHeight: 26,
   },
   body: {
     fontSize: 16,
-    fontWeight: "400",
+    fontWeight: typography.weights.regular,
     letterSpacing: 0,
     lineHeight: 23,
   },
   label: {
     fontSize: 14,
-    fontWeight: "700",
+    fontWeight: typography.weights.semibold,
     letterSpacing: 0,
     lineHeight: 18,
   },
   caption: {
     fontSize: 13,
-    fontWeight: "500",
+    fontWeight: typography.weights.medium,
     letterSpacing: 0,
     lineHeight: 17,
   },
   metric: {
     fontSize: 34,
-    fontWeight: "700",
+    fontWeight: typography.weights.bold,
+    fontVariant: typography.tabularNumbers,
     letterSpacing: 0,
     lineHeight: 38,
   },

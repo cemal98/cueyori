@@ -1,37 +1,35 @@
-# CueYori Mobile Starter Kit
+# CueYori
 
-Expo + React Native + TypeScript starter documentation pack for building CueYori with AI coding agents.
+Cook everything. Right on cue.
 
-## What this zip contains
+CueYori is an iOS-first cooking workflow assistant built with Expo, React Native, TypeScript, Expo Router, Zustand, NativeWind, and local Expo Notifications. It is designed to help coordinate multiple dishes at the same time by turning dish stages into one unified cooking timeline.
 
-- `docs/PRD.md` — CueYori product brief
-- `docs/ARCHITECTURE.md` — recommended Expo app architecture
-- `docs/DEPLOYMENT.md` — App Store / Google Play deployment plan
-- `skills/INSTALL_GITHUB_SKILLS.md` — GitHub skill sources and install commands
-- `skills/vendor/` — vendored/adapter skill notes from public GitHub sources
-- `.cursor/rules/` — Cursor rules for this project
-- `.github/workflows/` — GitHub Actions templates for CI and EAS
-- `.eas/workflows/` — EAS workflow templates
-- `eas.json` — EAS build/submit profile template
-- `AGENTS.md` — root instructions for Codex/Cursor/Claude-style agents
+## Brand
 
-## Recommended setup
+- App name: CueYori
+- Tagline: Cook everything. Right on cue.
+- Primary accent: terracotta `#c7663a`
+- Light background: warm cream `#f6efe5`
+- Dark background: charcoal `#15110f`
+- App icon: `assets/brand/cueyori-app-icon.png`
+- Splash source: `assets/brand/cueyori-splash-source.png`
+- Animated loading layers: `assets/brand/cueyori-splash-lockup-base.png` and `assets/brand/cueyori-splash-lockup-heat.png`
+
+## Development
 
 ```bash
-npx create-expo-app@latest cueyori
-cd cueyori
-unzip ../cueyori_mobile_starter.zip -d .
-npm install zustand expo-notifications expo-router nativewind react-native-safe-area-context
-npm install -D typescript
-npx expo install expo-dev-client
+npm install
+npm run typecheck
+npm run ios
 ```
 
-Then open the repo in Codex/Cursor and prompt:
+## Current MVP
 
-```text
-Read AGENTS.md, docs/PRD.md, docs/ARCHITECTURE.md, and skills/INSTALL_GITHUB_SKILLS.md. Build the CueYori MVP using Expo Router, TypeScript, Zustand, and local notifications.
-```
-
-## Important
-
-This pack does not include private keys or store credentials. Add them as GitHub Secrets or EAS credentials only.
+- Cooking session, dish, stage, timeline, and notification models
+- Zustand cooking store
+- Timeline engine
+- Local notification scheduling service
+- Home dashboard
+- Active cooking session screen
+- Add/edit/delete dish and stage flows
+- Brand icon, splash assets, dark-mode color system, haptics, and polished state cards

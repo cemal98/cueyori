@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 
-import { colors } from "../../theme";
+import { brand, colors } from "../../theme";
 
 const splashBase = require("../../../assets/brand/cueyori-splash-lockup-base.png");
 const splashHeat = require("../../../assets/brand/cueyori-splash-lockup-heat.png");
@@ -61,7 +61,7 @@ export function CueYoriLoadingScreen() {
   return (
     <View style={styles.screen}>
       <View
-        accessibilityLabel="CueYori loading"
+        accessibilityLabel={`${brand.name} loading`}
         accessibilityRole="image"
         style={styles.lockup}
       >
