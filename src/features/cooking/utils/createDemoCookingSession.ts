@@ -1,12 +1,9 @@
 import {
-  cancelAllCookingNotifications,
-  scheduleSessionNotifications,
-} from "../services/notificationService";
-import {
   useCookingStore,
   type DishInput,
   type StageInput,
 } from "../store/useCookingStore";
+import { finishCookingSession, startCookingSession } from "./sessionCommands";
 
 type DemoDish = {
   dish: DishInput;
@@ -158,10 +155,7 @@ export const createDemoCookingSession = async (): Promise<void> => {
     .filter((session) => session.status === "active")
     .map((session) => session.id);
 
-  await cancelAllCookingNotifications();
-  activeSessionIds.forEach((sessionId) => {
-    useCookingStore.getState().completeSession(sessionId);
-  });
+  await Promise.all(activeSessionIds.map(finishCookingSession));
 
   const session = useCookingStore
     .getState()
@@ -182,11 +176,5 @@ export const createDemoCookingSession = async (): Promise<void> => {
     });
   });
 
-  useCookingStore.getState().startSession(session.id);
-
-  const startedSession = useCookingStore.getState().getSessionById(session.id);
-
-  if (startedSession) {
-    await scheduleSessionNotifications(startedSession);
-  }
+  await startCookingSession(session.id);
 };

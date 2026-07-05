@@ -54,5 +54,7 @@ export {
   pauseCookingSession,
   resetCookingSession,
   resumeCookingSession,
+  startCookingSession,
+  syncCookingSessionNotifications,
   uncompleteCookingStage,
 } from "./utils/sessionCommands";

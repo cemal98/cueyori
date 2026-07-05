@@ -38,6 +38,26 @@ const rescheduleActiveSession = async (
   await scheduleSessionNotifications(session);
 };
 
+export const syncCookingSessionNotifications = async (
+  sessionId: CookingSession["id"],
+): Promise<void> => {
+  const session = getSession(sessionId);
+
+  if (!session || session.status !== "active") {
+    await cancelSessionNotifications(sessionId);
+    return;
+  }
+
+  await scheduleSessionNotifications(session);
+};
+
+export const startCookingSession = async (
+  sessionId: CookingSession["id"],
+): Promise<void> => {
+  useCookingStore.getState().startSession(sessionId);
+  await syncCookingSessionNotifications(sessionId);
+};
+
 export const completeCookingStage = async (
   sessionId: CookingSession["id"],
   dishId: Dish["id"],
@@ -72,7 +92,7 @@ export const resumeCookingSession = async (
   sessionId: CookingSession["id"],
 ): Promise<void> => {
   useCookingStore.getState().resumeSession(sessionId);
-  await rescheduleActiveSession(sessionId);
+  await syncCookingSessionNotifications(sessionId);
 };
 
 export const finishCookingSession = async (

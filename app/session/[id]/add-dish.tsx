@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { AppText, Button, Card, Screen, TextField } from "../../../src/components";
 import {
   cookingActionLabels,
-  scheduleSessionNotifications,
+  syncCookingSessionNotifications,
   useCookingStore,
   type CookingActionType,
   type CookingSession,
@@ -259,11 +259,7 @@ export default function AddDishScreen() {
           .addStage(sessionId, createdDish.id, buildStageInput(stage, order));
       });
 
-      const updatedSession = useCookingStore.getState().getSessionById(sessionId);
-
-      if (updatedSession?.status === "active") {
-        await scheduleSessionNotifications(updatedSession);
-      }
+      await syncCookingSessionNotifications(sessionId);
 
       router.replace({
         pathname: "/session/[id]",
