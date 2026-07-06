@@ -16,6 +16,17 @@ export type DishFormErrors = {
   stages?: string;
 };
 
+export type DishFormValidationMessages = {
+  dishNameRequired: string;
+  durationPositive: string;
+  stageRequired: string;
+  stagesInsideDuration: string;
+  stageTitleRequired: string;
+  stageOffsetNonNegative: string;
+  stageOffsetInsideDuration: string;
+  durationFirst: string;
+};
+
 export const cookingActionTypes: CookingActionType[] = [
   "prep",
   "start",
@@ -62,24 +73,25 @@ export const validateDishFields = (
   dishName: string,
   durationMinutes: number | undefined,
   stages: DishStageDraft[],
+  messages: DishFormValidationMessages = defaultValidationMessages,
 ): DishFormErrors => {
   const errors: DishFormErrors = {};
 
   if (!dishName.trim()) {
-    errors.dishName = "Dish name is required.";
+    errors.dishName = messages.dishNameRequired;
   }
 
   if (!durationMinutes) {
-    errors.duration = "Duration must be a positive number.";
+    errors.duration = messages.durationPositive;
   }
 
   if (stages.length === 0) {
-    errors.stages = "Add at least one stage.";
+    errors.stages = messages.stageRequired;
   } else if (
     durationMinutes !== undefined &&
     stages.some((stage) => stage.offsetMinutes > durationMinutes)
   ) {
-    errors.stages = "Every stage offset must fit inside dish duration.";
+    errors.stages = messages.stagesInsideDuration;
   }
 
   return errors;
@@ -89,24 +101,36 @@ export const validateStageFields = (
   stageTitle: string,
   stageOffset: number | undefined,
   durationMinutes: number | undefined,
+  messages: DishFormValidationMessages = defaultValidationMessages,
 ): DishFormErrors => {
   const errors: DishFormErrors = {};
 
   if (!stageTitle.trim()) {
-    errors.stageTitle = "Stage title is required.";
+    errors.stageTitle = messages.stageTitleRequired;
   }
 
   if (stageOffset === undefined) {
-    errors.stageOffset = "Offset must be zero or more.";
+    errors.stageOffset = messages.stageOffsetNonNegative;
   } else if (durationMinutes !== undefined && stageOffset > durationMinutes) {
-    errors.stageOffset = "Offset must fit inside dish duration.";
+    errors.stageOffset = messages.stageOffsetInsideDuration;
   }
 
   if (!durationMinutes) {
-    errors.duration = "Add a valid dish duration first.";
+    errors.duration = messages.durationFirst;
   }
 
   return errors;
+};
+
+const defaultValidationMessages: DishFormValidationMessages = {
+  dishNameRequired: "Dish name is required.",
+  durationPositive: "Duration must be a positive number.",
+  stageRequired: "Add at least one stage.",
+  stagesInsideDuration: "Every stage offset must fit inside dish duration.",
+  stageTitleRequired: "Stage title is required.",
+  stageOffsetNonNegative: "Offset must be zero or more.",
+  stageOffsetInsideDuration: "Offset must fit inside dish duration.",
+  durationFirst: "Add a valid dish duration first.",
 };
 
 export const buildStageInput = (

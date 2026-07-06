@@ -52,6 +52,11 @@ export type TimelineProgress = {
   completionPercent: number;
 };
 
+export type RemainingTimeFormat = {
+  now: string;
+  late: (timeLabel: string) => string;
+};
+
 const millisecondsInMinute = 60 * 1000;
 const defaultDueWindowMinutes = 5;
 
@@ -244,6 +249,10 @@ export const getEventsByDish = (
 export const formatRemainingTime = (
   targetDate: ISODateString | Date,
   now: ISODateString | Date = new Date(),
+  format: RemainingTimeFormat = {
+    now: "now",
+    late: (timeLabel) => `${timeLabel} late`,
+  },
 ): string => {
   const remainingMilliseconds =
     toDate(targetDate).getTime() - toDate(now).getTime();
@@ -252,7 +261,7 @@ export const formatRemainingTime = (
   );
 
   if (remainingMinutes === 0) {
-    return "now";
+    return format.now;
   }
 
   const hours = Math.floor(remainingMinutes / 60);
@@ -263,5 +272,5 @@ export const formatRemainingTime = (
   ].filter((part): part is string => Boolean(part));
   const timeLabel = parts.join(" ");
 
-  return remainingMilliseconds < 0 ? `${timeLabel} late` : timeLabel;
+  return remainingMilliseconds < 0 ? format.late(timeLabel) : timeLabel;
 };

@@ -1,11 +1,12 @@
 import { StyleSheet, View } from "react-native";
 
 import { AppText, Button } from "../../../components";
+import { useTranslation } from "../../../i18n";
 import { colors, radii, spacing } from "../../../theme";
 import type { CookingStage } from "../types/cooking.types";
 import {
-  cookingActionLabels,
-  stageStatusLabels,
+  cookingActionLabelKeys,
+  stageStatusLabelKeys,
 } from "../utils/cookingLabels";
 import type { CookingTimelineEvent } from "../utils/timelineEngine";
 
@@ -24,12 +25,13 @@ export function StageRow({
   onToggle,
   disabled = false,
 }: StageRowProps) {
+  const { t } = useTranslation();
   const isCompleted = stage.status === "completed" || Boolean(stage.completedAt);
   const statusLabel = isCompleted
-    ? "Completed"
+    ? t("stage.statusCompleted")
     : event
-      ? stageStatusLabels[stage.status]
-      : "Not scheduled";
+      ? t(stageStatusLabelKeys[stage.status])
+      : t("stage.statusNotScheduled");
 
   return (
     <View style={[styles.row, isCompleted && styles.completedRow]}>
@@ -45,11 +47,11 @@ export function StageRow({
         <View style={styles.metaRow}>
           <View style={styles.chip}>
             <AppText tone="accent" variant="caption">
-              {cookingActionLabels[stage.actionType]}
+              {t(cookingActionLabelKeys[stage.actionType])}
             </AppText>
           </View>
           <AppText tone="secondary" variant="caption">
-            +{stage.offsetMinutes} min
+            +{t("dish.totalMinutes", { count: stage.offsetMinutes })}
           </AppText>
           <AppText tone="muted" variant="caption">
             {remainingLabel ?? statusLabel}
@@ -59,13 +61,15 @@ export function StageRow({
 
       <Button
         accessibilityLabel={
-          isCompleted ? `Uncomplete ${stage.title}` : `Complete ${stage.title}`
+          isCompleted
+            ? `${t("action.undo")} ${stage.title}`
+            : `${t("action.complete")} ${stage.title}`
         }
         disabled={disabled}
         haptic={isCompleted ? "warning" : "confirm"}
         onPress={onToggle}
         size="small"
-        title={isCompleted ? "Undo" : "Done"}
+        title={isCompleted ? t("action.undo") : t("action.done")}
         variant={isCompleted ? "ghost" : "secondary"}
       />
     </View>

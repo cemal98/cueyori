@@ -13,7 +13,7 @@ import {
 import {
   buildStageInput,
   buildStageUpdates,
-  cookingActionLabels,
+  cookingActionLabelKeys,
   cookingActionTypes,
   parseNonNegativeInteger,
   parsePositiveInteger,
@@ -27,6 +27,7 @@ import {
   type DishFormErrors,
   type DishStageDraft,
 } from "../../../../src/features/cooking";
+import { useTranslation } from "../../../../src/i18n";
 import { colors, radii, spacing } from "../../../../src/theme";
 
 type SaveMode = "idle" | "saving" | "deleting";
@@ -66,6 +67,20 @@ export default function EditDishScreen() {
   const [editingStageIndex, setEditingStageIndex] = useState<number>();
   const [errors, setErrors] = useState<DishFormErrors>({});
   const [saveMode, setSaveMode] = useState<SaveMode>("idle");
+  const { t } = useTranslation();
+  const validationMessages = useMemo(
+    () => ({
+      dishNameRequired: t("error.dishName"),
+      durationPositive: t("error.dishDuration"),
+      stageRequired: t("error.stageRequired"),
+      stagesInsideDuration: t("error.stagesInsideDuration"),
+      stageTitleRequired: t("error.stageTitle"),
+      stageOffsetNonNegative: t("error.stageOffset"),
+      stageOffsetInsideDuration: t("error.stageOffsetInside"),
+      durationFirst: t("error.durationFirst"),
+    }),
+    [t],
+  );
 
   const session = useMemo(
     () =>
@@ -88,7 +103,9 @@ export default function EditDishScreen() {
   const isFinished = session?.status === "finished";
   const isBusy = saveMode !== "idle";
   const stageButtonTitle =
-    editingStageIndex === undefined ? "Add Stage" : "Update Stage";
+    editingStageIndex === undefined
+      ? t("action.addStage")
+      : t("action.updateStage");
 
   useEffect(() => {
     if (!dish) {
@@ -131,6 +148,7 @@ export default function EditDishScreen() {
       stageTitle,
       stageOffsetMinutes,
       durationMinutes,
+      validationMessages,
     );
 
     if (
@@ -182,6 +200,7 @@ export default function EditDishScreen() {
     stageOffsetMinutes,
     stageTitle,
     stages,
+    validationMessages,
   ]);
 
   const handleEditStage = useCallback(
@@ -231,7 +250,12 @@ export default function EditDishScreen() {
       return;
     }
 
-    const nextErrors = validateDishFields(dishName, durationMinutes, stages);
+    const nextErrors = validateDishFields(
+      dishName,
+      durationMinutes,
+      stages,
+      validationMessages,
+    );
 
     if (nextErrors.dishName || nextErrors.duration || nextErrors.stages) {
       setErrors((currentErrors) => ({
@@ -298,6 +322,7 @@ export default function EditDishScreen() {
     session,
     sessionId,
     stages,
+    validationMessages,
   ]);
 
   const handleDeleteDish = useCallback(async () => {
@@ -320,12 +345,12 @@ export default function EditDishScreen() {
     return (
       <Screen>
         <View style={styles.header}>
-          <Button onPress={handleBack} title="Back" variant="ghost" />
+          <Button onPress={handleBack} title={t("action.back")} variant="ghost" />
           <StateCard
-            actionTitle="Back"
-            message="Go back and choose a dish from this cooking session."
+            actionTitle={t("action.back")}
+            message={t("dish.notFoundMessage")}
             onActionPress={handleBack}
-            title="Dish not found"
+            title={t("dish.notFoundTitle")}
             tone="error"
           />
         </View>
@@ -336,11 +361,11 @@ export default function EditDishScreen() {
   return (
     <Screen>
       <View style={styles.header}>
-        <Button onPress={handleBack} title="Back" variant="ghost" />
+        <Button onPress={handleBack} title={t("action.back")} variant="ghost" />
         <View style={styles.titleStack}>
-          <AppText variant="title">Edit Dish</AppText>
+          <AppText variant="title">{t("dish.editTitle")}</AppText>
           <AppText tone="secondary">
-            Tune the dish and CueYori will recalculate the timeline.
+            {t("dish.editSubtitle")}
           </AppText>
         </View>
       </View>
@@ -348,8 +373,7 @@ export default function EditDishScreen() {
       {isFinished ? (
         <Card tone="muted">
           <AppText tone="secondary">
-            Finished sessions cannot be edited. Reset the session first if you
-            need to change this dish.
+            {t("dish.finishedLocked")}
           </AppText>
         </Card>
       ) : null}
@@ -360,9 +384,9 @@ export default function EditDishScreen() {
             autoCapitalize="words"
             editable={!isFinished && !isBusy}
             error={errors.dishName}
-            label="Dish name"
+            label={t("dish.nameLabel")}
             onChangeText={setDishName}
-            placeholder="Salmon"
+            placeholder={t("dish.namePlaceholder")}
             returnKeyType="next"
             value={dishName}
           />
@@ -371,7 +395,7 @@ export default function EditDishScreen() {
             editable={!isFinished && !isBusy}
             error={errors.duration}
             keyboardType="number-pad"
-            label="Total duration"
+            label={t("dish.totalDurationLabel")}
             onChangeText={setDuration}
             placeholder="24"
             returnKeyType="done"
@@ -383,11 +407,11 @@ export default function EditDishScreen() {
       <Card>
         <View style={styles.formStack}>
           <View style={styles.sectionTitle}>
-            <AppText variant="headline">Stage builder</AppText>
+            <AppText variant="headline">{t("stage.builderTitle")}</AppText>
             <AppText tone="secondary" variant="caption">
               {editingStageIndex === undefined
-                ? "Add a new cue"
-                : "Editing selected cue"}
+                ? t("stage.addNewCue")
+                : t("stage.editingCue")}
             </AppText>
           </View>
 
@@ -395,9 +419,9 @@ export default function EditDishScreen() {
             autoCapitalize="sentences"
             editable={!isFinished && !isBusy}
             error={errors.stageTitle}
-            label="Stage title"
+            label={t("stage.titleLabel")}
             onChangeText={setStageTitle}
-            placeholder="Flip salmon"
+            placeholder={t("stage.titlePlaceholder")}
             returnKeyType="next"
             value={stageTitle}
           />
@@ -406,22 +430,24 @@ export default function EditDishScreen() {
             editable={!isFinished && !isBusy}
             error={errors.stageOffset}
             keyboardType="number-pad"
-            label="Offset in minutes"
+            label={t("stage.offsetLabel")}
             onChangeText={setStageOffset}
-            placeholder="8"
+            placeholder={t("stage.offsetPlaceholder")}
             returnKeyType="done"
             value={stageOffset}
           />
 
           <View style={styles.selectorStack}>
-            <AppText variant="label">Action type</AppText>
+            <AppText variant="label">{t("label.actionType")}</AppText>
             <View style={styles.actionGrid}>
               {cookingActionTypes.map((currentActionType) => {
                 const isSelected = currentActionType === actionType;
 
                 return (
                   <Pressable
-                    accessibilityLabel={cookingActionLabels[currentActionType]}
+                    accessibilityLabel={t(
+                      cookingActionLabelKeys[currentActionType],
+                    )}
                     accessibilityRole="button"
                     accessibilityState={{ selected: isSelected }}
                     disabled={isFinished || isBusy}
@@ -439,7 +465,7 @@ export default function EditDishScreen() {
                       tone={isSelected ? "inverse" : "accent"}
                       variant="caption"
                     >
-                      {cookingActionLabels[currentActionType]}
+                      {t(cookingActionLabelKeys[currentActionType])}
                     </AppText>
                   </Pressable>
                 );
@@ -458,7 +484,7 @@ export default function EditDishScreen() {
               <Button
                 disabled={isFinished || isBusy}
                 onPress={clearStageBuilder}
-                title="Cancel"
+                title={t("action.cancel")}
                 variant="ghost"
               />
             ) : null}
@@ -474,9 +500,9 @@ export default function EditDishScreen() {
 
       <View style={styles.previewSection}>
         <View style={styles.previewHeader}>
-          <AppText variant="headline">Stages</AppText>
+          <AppText variant="headline">{t("dish.stages")}</AppText>
           <AppText tone="secondary" variant="caption">
-            {stages.length} cues
+            {t("dish.cueCount", { count: stages.length })}
           </AppText>
         </View>
 
@@ -488,30 +514,31 @@ export default function EditDishScreen() {
                   <View style={styles.stagePreviewCopy}>
                     <AppText variant="label">{stage.title}</AppText>
                     <AppText tone="secondary" variant="caption">
-                      +{stage.offsetMinutes} min,{" "}
-                      {cookingActionLabels[stage.actionType]}
+                      +{t("dish.totalMinutes", {
+                        count: stage.offsetMinutes,
+                      })}, {t(cookingActionLabelKeys[stage.actionType])}
                     </AppText>
                   </View>
                   <View style={styles.previewActions}>
                     <Button
-                      accessibilityLabel={`Edit ${stage.title}`}
+                      accessibilityLabel={`${t("action.edit")} ${stage.title}`}
                       disabled={isFinished || isBusy}
                       onPress={() => {
                         handleEditStage(index);
                       }}
                       size="small"
-                      title="Edit"
+                      title={t("action.edit")}
                       variant="ghost"
                     />
                     <Button
-                      accessibilityLabel={`Remove ${stage.title}`}
+                      accessibilityLabel={`${t("action.remove")} ${stage.title}`}
                       disabled={isFinished || isBusy}
                       haptic="warning"
                       onPress={() => {
                         handleRemoveStage(index);
                       }}
                       size="small"
-                      title="Remove"
+                      title={t("action.remove")}
                       variant="ghost"
                     />
                   </View>
@@ -522,7 +549,7 @@ export default function EditDishScreen() {
         ) : (
           <Card tone="muted">
             <AppText tone="secondary">
-              Keep at least one stage so CueYori can build the cooking timeline.
+              {t("stage.emptyEdit")}
             </AppText>
           </Card>
         )}
@@ -533,13 +560,19 @@ export default function EditDishScreen() {
           disabled={isFinished || isBusy}
           haptic="confirm"
           onPress={handleSave}
-          title={saveMode === "saving" ? "Saving" : "Save Changes"}
+          title={
+            saveMode === "saving" ? t("action.saving") : t("action.saveChanges")
+          }
         />
         <Button
           disabled={isFinished || isBusy}
           haptic="warning"
           onPress={handleDeleteDish}
-          title={saveMode === "deleting" ? "Deleting" : "Delete Dish"}
+          title={
+            saveMode === "deleting"
+              ? t("action.deleting")
+              : t("action.deleteDish")
+          }
           variant="ghost"
         />
       </View>

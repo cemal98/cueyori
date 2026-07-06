@@ -4,6 +4,7 @@ import { StyleSheet, View } from "react-native";
 
 import { CueYoriLoadingScreen } from "../src/components/brand/CueYoriLoadingScreen";
 import { AppText, Button, Card, Screen, StateCard } from "../src/components";
+import { useTranslation } from "../src/i18n";
 import {
   createDemoCookingSession,
   CueCard,
@@ -26,6 +27,14 @@ export default function HomeScreen() {
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [now, setNow] = useState(() => new Date());
   const sessions = useCookingStore((state) => state.sessions);
+  const { t } = useTranslation();
+  const remainingTimeFormat = useMemo(
+    () => ({
+      now: t("time.now"),
+      late: (timeLabel: string) => t("time.late", { time: timeLabel }),
+    }),
+    [t],
+  );
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -68,7 +77,7 @@ export default function HomeScreen() {
   );
 
   const nextCueRemaining = nextCue
-    ? formatRemainingTime(nextCue.scheduledAt, now)
+    ? formatRemainingTime(nextCue.scheduledAt, now, remainingTimeFormat)
     : undefined;
 
   const handleStartCookingSession = useCallback(async () => {
@@ -99,6 +108,10 @@ export default function HomeScreen() {
     });
   }, [activeSession, router]);
 
+  const handleOpenSettings = useCallback(() => {
+    router.push("/settings" as never);
+  }, [router]);
+
   if (isLoadingIntroVisible) {
     return <CueYoriLoadingScreen />;
   }
@@ -109,24 +122,35 @@ export default function HomeScreen() {
         <View style={styles.brandBlock}>
           <AppText variant="largeTitle">{brand.name}</AppText>
           <AppText tone="secondary" variant="body">
-            {brand.tagline}
+            {t("app.tagline")}
           </AppText>
         </View>
 
         <Button
-          accessibilityHint="Creates a demo dinner workflow with chicken, rice, and pasta."
-          accessibilityLabel="Start Cooking Session"
+          accessibilityLabel={t("action.viewSettings")}
+          onPress={handleOpenSettings}
+          title={t("action.viewSettings")}
+          variant="ghost"
+        />
+
+        <Button
+          accessibilityHint={t("home.preparingMessage")}
+          accessibilityLabel={t("action.startCookingSession")}
           disabled={isStartingSession}
           haptic="confirm"
           onPress={handleStartCookingSession}
-          title={isStartingSession ? "Preparing" : "Start Cooking Session"}
+          title={
+            isStartingSession
+              ? t("home.preparing")
+              : t("action.startCookingSession")
+          }
         />
       </View>
 
       {isStartingSession ? (
         <StateCard
-          message="CueYori is arranging your first chicken, rice, and pasta cues."
-          title="Preparing session"
+          message={t("home.preparingMessage")}
+          title={t("home.preparingTitle")}
           tone="loading"
         />
       ) : null}
@@ -134,23 +158,25 @@ export default function HomeScreen() {
       {activeSession ? (
         <View style={styles.dashboardStack}>
           <Card
-            accessibilityHint="Opens the full cooking session timeline."
-            accessibilityLabel="Open active cooking session"
+            accessibilityHint={t("session.timelineTitle")}
+            accessibilityLabel={t("home.activeSession")}
             onPress={handleOpenActiveSession}
           >
             <View style={styles.sessionCard}>
               <View style={styles.sessionCopy}>
                 <AppText tone="secondary" variant="label">
-                  Active session
+                  {t("home.activeSession")}
                 </AppText>
                 <AppText variant="headline">{activeSession.title}</AppText>
                 <AppText tone="secondary" variant="body">
-                  {activeSession.dishes.length} dishes in motion
+                  {t("dish.dishesInMotion", {
+                    count: activeSession.dishes.length,
+                  })}
                 </AppText>
               </View>
 
               <TimerBadge
-                label="Progress"
+                label={t("label.progress")}
                 value={`${timelineProgress?.completionPercent ?? 0}%`}
               />
             </View>
@@ -160,9 +186,9 @@ export default function HomeScreen() {
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <AppText variant="headline">Active dishes</AppText>
+              <AppText variant="headline">{t("dish.activeDishes")}</AppText>
               <AppText tone="secondary" variant="caption">
-                {activeSession.dishes.length} total
+                {t("dish.total", { count: activeSession.dishes.length })}
               </AppText>
             </View>
 
@@ -186,10 +212,10 @@ export default function HomeScreen() {
         </View>
       ) : (
         <StateCard
-          actionTitle="Start Demo"
-          message="Start with a prepared dinner flow, then replace dishes with your own recipe timing."
+          actionTitle={t("action.startDemo")}
+          message={t("empty.noActiveMessage")}
           onActionPress={handleStartCookingSession}
-          title="No active session"
+          title={t("empty.noActiveTitle")}
         />
       )}
     </Screen>

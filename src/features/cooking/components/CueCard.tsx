@@ -1,8 +1,9 @@
 import { StyleSheet, View } from "react-native";
 
 import { AppText, Button, Card } from "../../../components";
+import { useTranslation } from "../../../i18n";
 import { colors, spacing } from "../../../theme";
-import { cookingActionLabels } from "../utils/cookingLabels";
+import { cookingActionLabelKeys } from "../utils/cookingLabels";
 import type { CookingTimelineEvent } from "../utils/timelineEngine";
 import { TimerBadge } from "./TimerBadge";
 
@@ -19,21 +20,25 @@ type CueCardProps = {
 export function CueCard({
   event,
   remainingLabel,
-  emptyTitle = "All cues are clear",
-  emptyMessage = "Nothing needs attention right now.",
+  emptyTitle,
+  emptyMessage,
   actionTitle,
   onActionPress,
   actionDisabled = false,
 }: CueCardProps) {
+  const { t } = useTranslation();
+  const resolvedEmptyTitle = emptyTitle ?? t("session.allClearTitle");
+  const resolvedEmptyMessage = emptyMessage ?? t("session.allClearMessage");
+
   if (!event) {
     return (
       <Card tone="muted">
         <View style={styles.stack}>
           <AppText tone="secondary" variant="label">
-            Next cue
+            {t("label.nextCue")}
           </AppText>
-          <AppText variant="headline">{emptyTitle}</AppText>
-          <AppText tone="secondary">{emptyMessage}</AppText>
+          <AppText variant="headline">{resolvedEmptyTitle}</AppText>
+          <AppText tone="secondary">{resolvedEmptyMessage}</AppText>
         </View>
       </Card>
     );
@@ -46,12 +51,12 @@ export function CueCard({
       <View style={styles.stack}>
         <View style={styles.header}>
           <AppText tone={isDue ? "inverse" : "secondary"} variant="label">
-            Next cue
+            {t("label.nextCue")}
           </AppText>
           <TimerBadge
-            label={isDue ? "Due" : "In"}
+            label={isDue ? t("label.timelineStatus.due") : t("label.in")}
             tone={isDue ? "urgent" : "calm"}
-            value={remainingLabel ?? "now"}
+            value={remainingLabel ?? t("time.now")}
           />
         </View>
 
@@ -67,12 +72,14 @@ export function CueCard({
         <View style={styles.metaRow}>
           <View style={[styles.actionChip, isDue && styles.actionChipDark]}>
             <AppText tone={isDue ? "inverse" : "accent"} variant="caption">
-              {cookingActionLabels[event.actionType]}
+              {t(cookingActionLabelKeys[event.actionType])}
             </AppText>
           </View>
           {event.heatLevel ? (
             <AppText tone={isDue ? "inverse" : "muted"} variant="caption">
-              Heat: {event.heatLevel.replace("_", " ")}
+              {t("cooking.heat", {
+                value: event.heatLevel.replace("_", " "),
+              })}
             </AppText>
           ) : null}
         </View>

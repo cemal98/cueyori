@@ -8,6 +8,7 @@ import {
 } from "react-native";
 
 import { brand, colors } from "../../theme";
+import { useTranslation } from "../../i18n";
 
 const splashBase = require("../../../assets/brand/cueyori-splash-lockup-base.png");
 const splashHeat = require("../../../assets/brand/cueyori-splash-lockup-heat.png");
@@ -16,6 +17,7 @@ const splashSize = Image.resolveAssetSource(splashBase);
 const splashAspectRatio = splashSize.width / splashSize.height;
 
 export function CueYoriLoadingScreen() {
+  const { t } = useTranslation();
   const heatProgress = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -61,7 +63,7 @@ export function CueYoriLoadingScreen() {
   return (
     <View style={styles.screen}>
       <View
-        accessibilityLabel={`${brand.name} loading`}
+        accessibilityLabel={t("app.loading")}
         accessibilityRole="image"
         style={styles.lockup}
       >

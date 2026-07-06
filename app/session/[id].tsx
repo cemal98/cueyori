@@ -14,7 +14,7 @@ import {
   pauseCookingSession,
   resetCookingSession,
   resumeCookingSession,
-  sessionStatusLabels,
+  sessionStatusLabelKeys,
   StageRow,
   TimelineEventRow,
   uncompleteCookingStage,
@@ -23,6 +23,7 @@ import {
   type CookingStage,
   type Dish,
 } from "../../src/features/cooking";
+import { useTranslation } from "../../src/i18n";
 import { colors, radii, spacing } from "../../src/theme";
 
 const sessionRefreshMs = 15000;
@@ -58,6 +59,14 @@ export default function ActiveCookingSessionScreen() {
   const [now, setNow] = useState(() => new Date());
   const [busyAction, setBusyAction] = useState<BusyAction>();
   const sessions = useCookingStore((state) => state.sessions);
+  const { t } = useTranslation();
+  const remainingTimeFormat = useMemo(
+    () => ({
+      now: t("time.now"),
+      late: (timeLabel: string) => t("time.late", { time: timeLabel }),
+    }),
+    [t],
+  );
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -116,14 +125,14 @@ export default function ActiveCookingSessionScreen() {
   );
 
   const nextCueRemaining = nextCue
-    ? formatRemainingTime(nextCue.scheduledAt, now)
+    ? formatRemainingTime(nextCue.scheduledAt, now, remainingTimeFormat)
     : undefined;
 
   const emptyCueCopy = useMemo(() => {
     if (session?.status === "finished") {
       return {
-        title: "Session finished",
-        message: "All cooking cues are complete. Nothing else needs attention.",
+        title: t("session.finishedCueTitle"),
+        message: t("session.finishedCueMessage"),
       };
     }
 
@@ -132,23 +141,23 @@ export default function ActiveCookingSessionScreen() {
       stageStats.completedStages === stageStats.totalStages
     ) {
       return {
-        title: "Ready to finish",
-        message: "All stages are done. Complete the session when the meal is ready.",
+        title: t("session.readyToFinish"),
+        message: t("session.completeWhenReady"),
       };
     }
 
     if (session?.status === "paused") {
       return {
-        title: "Session paused",
-        message: "Resume when you are ready to continue cooking.",
+        title: t("session.pausedCueTitle"),
+        message: t("session.pausedCueMessage"),
       };
     }
 
     return {
-      title: "All cues are clear",
-      message: "Nothing needs attention right now.",
+      title: t("session.allClearTitle"),
+      message: t("session.allClearMessage"),
     };
-  }, [session?.status, stageStats.completedStages, stageStats.totalStages]);
+  }, [session?.status, stageStats.completedStages, stageStats.totalStages, t]);
 
   const handleGoHome = useCallback(() => {
     router.replace("/");
@@ -272,10 +281,10 @@ export default function ActiveCookingSessionScreen() {
         <View style={styles.header}>
           <Button onPress={handleGoHome} title="Back Home" variant="ghost" />
           <StateCard
-            actionTitle="Back Home"
-            message="This cooking session is no longer available."
+            actionTitle={t("action.backHome")}
+            message={t("session.missingMessage")}
             onActionPress={handleGoHome}
-            title="Session not found"
+            title={t("session.missingTitle")}
             tone="error"
           />
         </View>
@@ -286,45 +295,50 @@ export default function ActiveCookingSessionScreen() {
   const canPause = session.status === "active";
   const canResume = session.status === "paused";
   const controlsDisabled = Boolean(busyAction);
-  const progressDoneLabel = `${timelineProgress?.completedEvents ?? 0}/${
-    timelineProgress?.totalEvents ?? stageStats.totalStages
-  } done`;
+  const progressDoneLabel = t("label.doneCount", {
+    count: `${timelineProgress?.completedEvents ?? 0}/${
+      timelineProgress?.totalEvents ?? stageStats.totalStages
+    }`,
+  });
 
   return (
     <Screen>
       <View style={styles.header}>
         <Button
-          accessibilityLabel="Go back to Home"
+          accessibilityLabel={t("action.backHome")}
           onPress={handleGoHome}
-          title="Back Home"
+          title={t("action.backHome")}
           variant="ghost"
         />
 
         <View style={styles.titleBlock}>
           <View style={styles.statusPill}>
             <AppText tone="accent" variant="caption">
-              {sessionStatusLabels[session.status]}
+              {t(sessionStatusLabelKeys[session.status])}
             </AppText>
           </View>
           <AppText variant="title">{session.title}</AppText>
           <AppText tone="secondary" variant="body">
-            {session.dishes.length} dishes, {stageStats.totalStages} cues
+            {t("dish.dishesAndCues", {
+              dishes: session.dishes.length,
+              cues: stageStats.totalStages,
+            })}
           </AppText>
         </View>
 
         <Button
-          accessibilityLabel="Add Dish"
-          accessibilityHint="Opens the dish and stage builder."
+          accessibilityLabel={t("action.addDish")}
+          accessibilityHint={t("dish.formSubtitle")}
           disabled={session.status === "finished"}
           onPress={handleAddDish}
-          title="Add Dish"
+          title={t("action.addDish")}
           variant="secondary"
         />
       </View>
 
       <CueCard
         actionDisabled={nextCue ? busyAction === `stage:${nextCue.stageId}` : true}
-        actionTitle={nextCue ? "Done" : undefined}
+        actionTitle={nextCue ? t("action.done") : undefined}
         emptyMessage={emptyCueCopy.message}
         emptyTitle={emptyCueCopy.title}
         event={nextCue}
@@ -337,7 +351,7 @@ export default function ActiveCookingSessionScreen() {
           <View style={styles.progressRow}>
             <View>
               <AppText tone="secondary" variant="label">
-                Cooking progress
+                {t("label.cookingProgress")}
               </AppText>
               <AppText variant="metric">
                 {timelineProgress?.completionPercent ?? 0}%
@@ -348,7 +362,7 @@ export default function ActiveCookingSessionScreen() {
                 {progressDoneLabel}
               </AppText>
               <AppText tone="secondary" variant="caption">
-                {stageStats.remainingStages} remaining
+                {t("label.remaining", { count: stageStats.remainingStages })}
               </AppText>
             </View>
           </View>
@@ -360,7 +374,7 @@ export default function ActiveCookingSessionScreen() {
                 haptic="warning"
                 onPress={handlePause}
                 size="small"
-                title="Pause"
+                title={t("action.pause")}
                 variant="ghost"
               />
             ) : null}
@@ -371,7 +385,7 @@ export default function ActiveCookingSessionScreen() {
                 haptic="confirm"
                 onPress={handleResume}
                 size="small"
-                title="Resume"
+                title={t("action.resume")}
                 variant="primary"
               />
             ) : null}
@@ -381,7 +395,11 @@ export default function ActiveCookingSessionScreen() {
               haptic="confirm"
               onPress={handleFinish}
               size="small"
-              title={session.status === "finished" ? "Finished" : "Complete"}
+              title={
+                session.status === "finished"
+                  ? t("session.finishedLabel")
+                  : t("action.complete")
+              }
               variant="secondary"
             />
             <Button
@@ -389,7 +407,7 @@ export default function ActiveCookingSessionScreen() {
               haptic="warning"
               onPress={handleReset}
               size="small"
-              title="Reset"
+              title={t("action.reset")}
               variant="ghost"
             />
           </View>
@@ -398,9 +416,9 @@ export default function ActiveCookingSessionScreen() {
 
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <AppText variant="headline">Unified timeline</AppText>
+          <AppText variant="headline">{t("session.timelineTitle")}</AppText>
           <AppText tone="secondary" variant="caption">
-            {timeline.length} events
+            {t("label.eventCount", { count: timeline.length })}
           </AppText>
         </View>
 
@@ -410,13 +428,17 @@ export default function ActiveCookingSessionScreen() {
               <TimelineEventRow
                 event={event}
                 key={event.id}
-                remainingLabel={formatRemainingTime(event.scheduledAt, now)}
+                remainingLabel={formatRemainingTime(
+                  event.scheduledAt,
+                  now,
+                  remainingTimeFormat,
+                )}
               />
             ))
           ) : (
             <Card tone="muted">
               <AppText tone="secondary">
-                Timeline will appear when cues are available.
+                {t("session.timelineEmpty")}
               </AppText>
             </Card>
           )}
@@ -425,9 +447,9 @@ export default function ActiveCookingSessionScreen() {
 
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <AppText variant="headline">Dishes and stages</AppText>
+          <AppText variant="headline">{t("session.dishesAndStages")}</AppText>
           <AppText tone="secondary" variant="caption">
-            {session.dishes.length} dishes
+            {t("dish.total", { count: session.dishes.length })}
           </AppText>
         </View>
 
@@ -445,24 +467,29 @@ export default function ActiveCookingSessionScreen() {
                     <View style={styles.dishTitle}>
                       <AppText variant="headline">{dish.name}</AppText>
                       <AppText tone="secondary" variant="caption">
-                        {dish.totalMinutes} min, {dish.stages.length} cues
+                        {t("dish.totalMinutesCues", {
+                          minutes: dish.totalMinutes,
+                          cues: dish.stages.length,
+                        })}
                       </AppText>
                     </View>
                     <View style={styles.dishActions}>
                       <View style={styles.dishBadge}>
                         <AppText tone="accent" variant="caption">
-                          {completedDishStages}/{dish.stages.length} done
+                          {t("label.doneCount", {
+                            count: `${completedDishStages}/${dish.stages.length}`,
+                          })}
                         </AppText>
                       </View>
                       <Button
-                        accessibilityLabel={`Edit ${dish.name}`}
-                        accessibilityHint="Opens dish timing and stage editing."
+                        accessibilityLabel={`${t("action.edit")} ${dish.name}`}
+                        accessibilityHint={t("dish.editHint")}
                         disabled={session.status === "finished"}
                         onPress={() => {
                           handleEditDish(dish.id);
                         }}
                         size="small"
-                        title="Edit"
+                        title={t("action.edit")}
                         variant="ghost"
                       />
                     </View>
@@ -472,7 +499,11 @@ export default function ActiveCookingSessionScreen() {
                     {dish.stages.map((stage) => {
                       const event = eventByStageId.get(stage.id);
                       const stageRemainingLabel = event
-                        ? formatRemainingTime(event.scheduledAt, now)
+                        ? formatRemainingTime(
+                            event.scheduledAt,
+                            now,
+                            remainingTimeFormat,
+                          )
                         : undefined;
 
                       return (

@@ -12,7 +12,7 @@ import {
 } from "../../../src/components";
 import {
   buildStageInput,
-  cookingActionLabels,
+  cookingActionLabelKeys,
   cookingActionTypes,
   parseNonNegativeInteger,
   parsePositiveInteger,
@@ -25,6 +25,7 @@ import {
   type DishFormErrors,
   type DishStageDraft,
 } from "../../../src/features/cooking";
+import { useTranslation } from "../../../src/i18n";
 import { colors, radii, spacing } from "../../../src/theme";
 
 const getRouteId = (id: string | string[] | undefined): string | undefined =>
@@ -44,6 +45,20 @@ export default function AddDishScreen() {
   const [stages, setStages] = useState<DishStageDraft[]>([]);
   const [errors, setErrors] = useState<DishFormErrors>({});
   const [isSaving, setIsSaving] = useState(false);
+  const { t } = useTranslation();
+  const validationMessages = useMemo(
+    () => ({
+      dishNameRequired: t("error.dishName"),
+      durationPositive: t("error.dishDuration"),
+      stageRequired: t("error.stageRequired"),
+      stagesInsideDuration: t("error.stagesInsideDuration"),
+      stageTitleRequired: t("error.stageTitle"),
+      stageOffsetNonNegative: t("error.stageOffset"),
+      stageOffsetInsideDuration: t("error.stageOffsetInside"),
+      durationFirst: t("error.durationFirst"),
+    }),
+    [t],
+  );
 
   const session = useMemo(
     () =>
@@ -75,6 +90,7 @@ export default function AddDishScreen() {
       stageTitle,
       stageOffsetMinutes,
       durationMinutes,
+      validationMessages,
     );
 
     if (
@@ -109,7 +125,13 @@ export default function AddDishScreen() {
       stageOffset: undefined,
       stages: undefined,
     }));
-  }, [actionType, durationMinutes, stageOffsetMinutes, stageTitle]);
+  }, [
+    actionType,
+    durationMinutes,
+    stageOffsetMinutes,
+    stageTitle,
+    validationMessages,
+  ]);
 
   const handleRemoveStage = useCallback((stageIndex: number) => {
     setStages((currentStages) =>
@@ -126,6 +148,7 @@ export default function AddDishScreen() {
       dishName,
       durationMinutes,
       stages,
+      validationMessages,
     );
 
     if (nextErrors.dishName || nextErrors.duration || nextErrors.stages) {
@@ -147,7 +170,7 @@ export default function AddDishScreen() {
       if (!createdDish) {
         setErrors((currentErrors) => ({
           ...currentErrors,
-          dishName: "Could not add this dish.",
+          dishName: t("error.addDishFailed"),
         }));
         return;
       }
@@ -169,18 +192,27 @@ export default function AddDishScreen() {
     } finally {
       setIsSaving(false);
     }
-  }, [dishName, durationMinutes, router, session, sessionId, stages]);
+  }, [
+    dishName,
+    durationMinutes,
+    router,
+    session,
+    sessionId,
+    stages,
+    t,
+    validationMessages,
+  ]);
 
   if (!session) {
     return (
       <Screen>
         <View style={styles.header}>
-          <Button onPress={handleBack} title="Back" variant="ghost" />
+          <Button onPress={handleBack} title={t("action.back")} variant="ghost" />
           <StateCard
-            actionTitle="Back"
-            message="Go back and choose an active cooking session."
+            actionTitle={t("action.back")}
+            message={t("session.missingMessage")}
             onActionPress={handleBack}
-            title="Session not found"
+            title={t("session.missingTitle")}
             tone="error"
           />
         </View>
@@ -191,11 +223,11 @@ export default function AddDishScreen() {
   return (
     <Screen>
       <View style={styles.header}>
-        <Button onPress={handleBack} title="Back" variant="ghost" />
+        <Button onPress={handleBack} title={t("action.back")} variant="ghost" />
         <View style={styles.titleStack}>
-          <AppText variant="title">Add Dish</AppText>
+          <AppText variant="title">{t("action.addDish")}</AppText>
           <AppText tone="secondary">
-            Add a dish and the cues CueYori should watch while you cook.
+            {t("dish.formSubtitle")}
           </AppText>
         </View>
       </View>
@@ -205,9 +237,9 @@ export default function AddDishScreen() {
           <TextField
             autoCapitalize="words"
             error={errors.dishName}
-            label="Dish name"
+            label={t("dish.nameLabel")}
             onChangeText={setDishName}
-            placeholder="Salmon"
+            placeholder={t("dish.namePlaceholder")}
             returnKeyType="next"
             value={dishName}
           />
@@ -215,7 +247,7 @@ export default function AddDishScreen() {
           <TextField
             error={errors.duration}
             keyboardType="number-pad"
-            label="Total duration"
+            label={t("dish.totalDurationLabel")}
             onChangeText={setDuration}
             placeholder="24"
             returnKeyType="done"
@@ -227,18 +259,18 @@ export default function AddDishScreen() {
       <Card>
         <View style={styles.formStack}>
           <View style={styles.sectionTitle}>
-            <AppText variant="headline">Stage builder</AppText>
+            <AppText variant="headline">{t("stage.builderTitle")}</AppText>
             <AppText tone="secondary" variant="caption">
-              Add one cue at a time
+              {t("stage.oneAtATime")}
             </AppText>
           </View>
 
           <TextField
             autoCapitalize="sentences"
             error={errors.stageTitle}
-            label="Stage title"
+            label={t("stage.titleLabel")}
             onChangeText={setStageTitle}
-            placeholder="Flip salmon"
+            placeholder={t("stage.titlePlaceholder")}
             returnKeyType="next"
             value={stageTitle}
           />
@@ -246,22 +278,24 @@ export default function AddDishScreen() {
           <TextField
             error={errors.stageOffset}
             keyboardType="number-pad"
-            label="Offset in minutes"
+            label={t("stage.offsetLabel")}
             onChangeText={setStageOffset}
-            placeholder="8"
+            placeholder={t("stage.offsetPlaceholder")}
             returnKeyType="done"
             value={stageOffset}
           />
 
           <View style={styles.selectorStack}>
-            <AppText variant="label">Action type</AppText>
+            <AppText variant="label">{t("label.actionType")}</AppText>
             <View style={styles.actionGrid}>
               {cookingActionTypes.map((currentActionType) => {
                 const isSelected = currentActionType === actionType;
 
                 return (
                   <Pressable
-                    accessibilityLabel={cookingActionLabels[currentActionType]}
+                    accessibilityLabel={t(
+                      cookingActionLabelKeys[currentActionType],
+                    )}
                     accessibilityRole="button"
                     accessibilityState={{ selected: isSelected }}
                     key={currentActionType}
@@ -277,7 +311,7 @@ export default function AddDishScreen() {
                       tone={isSelected ? "inverse" : "accent"}
                       variant="caption"
                     >
-                      {cookingActionLabels[currentActionType]}
+                      {t(cookingActionLabelKeys[currentActionType])}
                     </AppText>
                   </Pressable>
                 );
@@ -285,7 +319,11 @@ export default function AddDishScreen() {
             </View>
           </View>
 
-          <Button onPress={handleAddStage} title="Add Stage" variant="secondary" />
+          <Button
+            onPress={handleAddStage}
+            title={t("action.addStage")}
+            variant="secondary"
+          />
 
           {errors.stages ? (
             <AppText tone="accent" variant="caption">
@@ -297,9 +335,9 @@ export default function AddDishScreen() {
 
       <View style={styles.previewSection}>
         <View style={styles.previewHeader}>
-          <AppText variant="headline">Stage preview</AppText>
+          <AppText variant="headline">{t("dish.stagePreview")}</AppText>
           <AppText tone="secondary" variant="caption">
-            {stages.length} added
+            {t("dish.addedCount", { count: stages.length })}
           </AppText>
         </View>
 
@@ -311,18 +349,19 @@ export default function AddDishScreen() {
                   <View style={styles.stagePreviewCopy}>
                     <AppText variant="label">{stage.title}</AppText>
                     <AppText tone="secondary" variant="caption">
-                      +{stage.offsetMinutes} min,{" "}
-                      {cookingActionLabels[stage.actionType]}
+                      +{t("dish.totalMinutes", {
+                        count: stage.offsetMinutes,
+                      })}, {t(cookingActionLabelKeys[stage.actionType])}
                     </AppText>
                   </View>
                   <Button
-                    accessibilityLabel={`Remove ${stage.title}`}
+                    accessibilityLabel={`${t("action.remove")} ${stage.title}`}
                     haptic="warning"
                     onPress={() => {
                       handleRemoveStage(index);
                     }}
                     size="small"
-                    title="Remove"
+                    title={t("action.remove")}
                     variant="ghost"
                   />
                 </View>
@@ -332,7 +371,7 @@ export default function AddDishScreen() {
         ) : (
           <Card tone="muted">
             <AppText tone="secondary">
-              Add at least one stage before saving this dish.
+              {t("stage.emptyAdd")}
             </AppText>
           </Card>
         )}
@@ -342,7 +381,7 @@ export default function AddDishScreen() {
         disabled={isSaving || session.status === "finished"}
         haptic="confirm"
         onPress={handleSave}
-        title={isSaving ? "Saving" : "Save Dish"}
+        title={isSaving ? t("action.saving") : t("action.saveDish")}
       />
     </Screen>
   );

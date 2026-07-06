@@ -1,10 +1,11 @@
 import { StyleSheet, View } from "react-native";
 
 import { AppText } from "../../../components";
+import { useTranslation } from "../../../i18n";
 import { colors, radii, spacing } from "../../../theme";
 import {
-  cookingActionLabels,
-  timelineStatusLabels,
+  cookingActionLabelKeys,
+  timelineStatusLabelKeys,
 } from "../utils/cookingLabels";
 import type { CookingTimelineEvent } from "../utils/timelineEngine";
 
@@ -17,9 +18,10 @@ export function TimelineEventRow({
   event,
   remainingLabel,
 }: TimelineEventRowProps) {
+  const { t } = useTranslation();
   const isCompleted = event.status === "completed";
   const isDue = event.status === "due";
-  const timeLabel = isCompleted ? "Done" : remainingLabel;
+  const timeLabel = isCompleted ? t("action.done") : remainingLabel;
 
   return (
     <View
@@ -57,11 +59,11 @@ export function TimelineEventRow({
           </AppText>
           <View style={styles.chip}>
             <AppText tone="accent" variant="caption">
-              {cookingActionLabels[event.actionType]}
+              {t(cookingActionLabelKeys[event.actionType])}
             </AppText>
           </View>
           <AppText tone="muted" variant="caption">
-            {timelineStatusLabels[event.status]}
+            {t(timelineStatusLabelKeys[event.status])}
           </AppText>
         </View>
       </View>

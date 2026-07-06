@@ -1,6 +1,7 @@
 import { StyleSheet, View } from "react-native";
 
 import { AppText, Card } from "../../../components";
+import { useTranslation } from "../../../i18n";
 import { colors, radii, spacing } from "../../../theme";
 import type { Dish } from "../types/cooking.types";
 import type { CookingTimelineEvent } from "../utils/timelineEngine";
@@ -11,10 +12,13 @@ type DishCardProps = {
 };
 
 export function DishCard({ dish, nextEvent }: DishCardProps) {
+  const { t } = useTranslation();
   const completedStages = dish.stages.filter(
     (stage) => stage.status === "completed",
   ).length;
-  const stageLabel = `${completedStages}/${dish.stages.length} cues`;
+  const stageLabel = t("dish.cueCount", {
+    count: `${completedStages}/${dish.stages.length}`,
+  });
 
   return (
     <Card>
@@ -23,7 +27,7 @@ export function DishCard({ dish, nextEvent }: DishCardProps) {
           <View style={styles.titleGroup}>
             <AppText variant="headline">{dish.name}</AppText>
             <AppText tone="secondary" variant="caption">
-              {dish.totalMinutes} min
+              {t("dish.totalMinutes", { count: dish.totalMinutes })}
             </AppText>
           </View>
           <View style={styles.badge}>
@@ -35,10 +39,10 @@ export function DishCard({ dish, nextEvent }: DishCardProps) {
 
         <View style={styles.nextRow}>
           <AppText tone="muted" variant="caption">
-            Next
+            {t("dish.next")}
           </AppText>
           <AppText numberOfLines={1} tone="secondary" variant="body">
-            {nextEvent?.stageTitle ?? "Clear"}
+            {nextEvent?.stageTitle ?? t("dish.clear")}
           </AppText>
         </View>
       </View>

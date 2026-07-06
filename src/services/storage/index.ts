@@ -1,1 +1,1 @@
-export {};
+export { fileStorage } from "./fileStorage";
