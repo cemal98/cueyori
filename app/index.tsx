@@ -99,9 +99,10 @@ export default function HomeScreen() {
 
       setNow(new Date());
       router.push({
-        pathname: "/session/[id]",
+        pathname: "/session/[id]/add-dish",
         params: {
           id: session.id,
+          firstDish: "1",
         },
       });
     } finally {

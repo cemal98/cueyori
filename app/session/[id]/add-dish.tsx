@@ -32,10 +32,16 @@ import { colors, radii, spacing, useThemeColors } from "../../../src/theme";
 const getRouteId = (id: string | string[] | undefined): string | undefined =>
   Array.isArray(id) ? id[0] : id;
 
+const getRouteFlag = (value: string | string[] | undefined): boolean =>
+  Array.isArray(value) ? value[0] === "1" : value === "1";
+
 export default function AddDishScreen() {
   const router = useRouter();
   const themeColors = useThemeColors();
-  const params = useLocalSearchParams<{ id?: string | string[] }>();
+  const params = useLocalSearchParams<{
+    id?: string | string[];
+    firstDish?: string | string[];
+  }>();
   const sessionId = getRouteId(params.id);
   const sessions = useCookingStore((state) => state.sessions);
 
@@ -72,8 +78,15 @@ export default function AddDishScreen() {
 
   const durationMinutes = parsePositiveInteger(duration);
   const stageDelayMinutes = parseNonNegativeInteger(stageOffset);
+  const isFirstDishFlow =
+    getRouteFlag(params.firstDish) || session?.dishes.length === 0;
 
   const handleBack = useCallback(() => {
+    if (isFirstDishFlow) {
+      router.replace("/");
+      return;
+    }
+
     if (sessionId) {
       router.replace({
         pathname: "/session/[id]",
@@ -85,7 +98,7 @@ export default function AddDishScreen() {
     }
 
     router.replace("/");
-  }, [router, sessionId]);
+  }, [isFirstDishFlow, router, sessionId]);
 
   const handleAddStage = useCallback(() => {
     const nextErrors = validateSequentialStageFields(
@@ -236,11 +249,17 @@ export default function AddDishScreen() {
   return (
     <Screen>
       <View style={styles.header}>
-        <Button onPress={handleBack} title={t("action.back")} variant="ghost" />
+        <Button
+          onPress={handleBack}
+          title={isFirstDishFlow ? t("action.backHome") : t("action.back")}
+          variant="ghost"
+        />
         <View style={styles.titleStack}>
           <AppText variant="title">{t("action.addDish")}</AppText>
           <AppText tone="secondary">
-            {t("dish.formSubtitle")}
+            {isFirstDishFlow
+              ? t("dish.firstDishSubtitle")
+              : t("dish.formSubtitle")}
           </AppText>
         </View>
       </View>

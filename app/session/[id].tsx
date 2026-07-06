@@ -177,6 +177,25 @@ export default function ActiveCookingSessionScreen() {
     [sessionId, sessions],
   );
 
+  useEffect(() => {
+    if (!session || session.dishes.length > 0) {
+      return;
+    }
+
+    if (session.status === "finished") {
+      router.replace("/");
+      return;
+    }
+
+    router.replace({
+      pathname: "/session/[id]/add-dish",
+      params: {
+        id: session.id,
+        firstDish: "1",
+      },
+    });
+  }, [router, session]);
+
   const timeline = useMemo(
     () => (session ? generateTimeline(session, now) : []),
     [now, session],
@@ -389,6 +408,10 @@ export default function ActiveCookingSessionScreen() {
         </View>
       </Screen>
     );
+  }
+
+  if (session.dishes.length === 0) {
+    return null;
   }
 
   const canStart = session.status === "draft";
