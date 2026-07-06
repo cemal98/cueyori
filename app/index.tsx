@@ -19,7 +19,6 @@ import {
 } from "../src/features/cooking";
 import { brand, spacing } from "../src/theme";
 
-const loadingIntroDurationMs = 2600;
 const dashboardRefreshMs = 30000;
 
 export default function HomeScreen() {
@@ -36,16 +35,6 @@ export default function HomeScreen() {
     }),
     [t],
   );
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setIsLoadingIntroVisible(false);
-    }, loadingIntroDurationMs);
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -135,124 +124,140 @@ export default function HomeScreen() {
     router.push("/settings" as never);
   }, [router]);
 
-  if (isLoadingIntroVisible) {
-    return <CueYoriLoadingScreen />;
-  }
+  const handleLoadingIntroFinish = useCallback(() => {
+    setIsLoadingIntroVisible(false);
+  }, []);
 
   return (
-    <Screen>
-      <View style={styles.header}>
-        <View style={styles.brandBlock}>
-          <AppText variant="largeTitle">{brand.name}</AppText>
-          <AppText tone="secondary" variant="body">
-            {t("app.tagline")}
-          </AppText>
+    <View style={styles.root}>
+      <Screen>
+        <View style={styles.header}>
+          <View style={styles.brandBlock}>
+            <AppText variant="largeTitle">{brand.name}</AppText>
+            <AppText tone="secondary" variant="body">
+              {t("app.tagline")}
+            </AppText>
+          </View>
+
+          <Button
+            accessibilityLabel={t("action.viewSettings")}
+            onPress={handleOpenSettings}
+            title={t("action.viewSettings")}
+            variant="ghost"
+          />
+
+          <Button
+            accessibilityHint={t("home.preparingMessage")}
+            accessibilityLabel={t("action.newSession")}
+            disabled={isStartingSession}
+            haptic="confirm"
+            onPress={handleStartCookingSession}
+            title={
+              isStartingSession
+                ? t("home.preparing")
+                : t("action.newSession")
+            }
+          />
         </View>
 
-        <Button
-          accessibilityLabel={t("action.viewSettings")}
-          onPress={handleOpenSettings}
-          title={t("action.viewSettings")}
-          variant="ghost"
-        />
+        {isStartingSession ? (
+          <StateCard
+            message={t("home.preparingMessage")}
+            title={t("home.preparingTitle")}
+            tone="loading"
+          />
+        ) : null}
 
-        <Button
-          accessibilityHint={t("home.preparingMessage")}
-          accessibilityLabel={t("action.newSession")}
-          disabled={isStartingSession}
-          haptic="confirm"
-          onPress={handleStartCookingSession}
-          title={
-            isStartingSession
-              ? t("home.preparing")
-              : t("action.newSession")
-          }
-        />
-      </View>
+        {currentSession ? (
+          <View style={styles.dashboardStack}>
+            <Card
+              accessibilityHint={t("session.timelineTitle")}
+              accessibilityLabel={t("home.currentSession")}
+              onPress={handleOpenCurrentSession}
+            >
+              <View style={styles.sessionCard}>
+                <View style={styles.sessionCopy}>
+                  <AppText tone="secondary" variant="label">
+                    {t("home.currentSession")}
+                  </AppText>
+                  <AppText variant="headline">
+                    {getSessionDisplayTitle(
+                      currentSession.title,
+                      t("session.defaultTitle"),
+                    )}
+                  </AppText>
+                  <AppText tone="secondary" variant="body">
+                    {t("dish.dishesInMotion", {
+                      count: currentSession.dishes.length,
+                    })}
+                  </AppText>
+                </View>
 
-      {isStartingSession ? (
-        <StateCard
-          message={t("home.preparingMessage")}
-          title={t("home.preparingTitle")}
-          tone="loading"
-        />
-      ) : null}
+                <TimerBadge
+                  label={t("label.progress")}
+                  value={`${timelineProgress?.completionPercent ?? 0}%`}
+                />
+              </View>
+            </Card>
 
-      {currentSession ? (
-        <View style={styles.dashboardStack}>
-          <Card
-            accessibilityHint={t("session.timelineTitle")}
-            accessibilityLabel={t("home.currentSession")}
-            onPress={handleOpenCurrentSession}
-          >
-            <View style={styles.sessionCard}>
-              <View style={styles.sessionCopy}>
-                <AppText tone="secondary" variant="label">
-                  {t("home.currentSession")}
-                </AppText>
-                <AppText variant="headline">
-                  {getSessionDisplayTitle(
-                    currentSession.title,
-                    t("session.defaultTitle"),
-                  )}
-                </AppText>
-                <AppText tone="secondary" variant="body">
-                  {t("dish.dishesInMotion", {
-                    count: currentSession.dishes.length,
-                  })}
+            <CueCard event={nextCue} remainingLabel={nextCueRemaining} />
+
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <AppText variant="headline">{t("dish.activeDishes")}</AppText>
+                <AppText tone="secondary" variant="caption">
+                  {t("dish.total", { count: currentSession.dishes.length })}
                 </AppText>
               </View>
 
-              <TimerBadge
-                label={t("label.progress")}
-                value={`${timelineProgress?.completionPercent ?? 0}%`}
-              />
-            </View>
-          </Card>
+              <View style={styles.dishList}>
+                {currentSession.dishes.map((dish) => {
+                  const dishNextEvent = eventsByDish?.[dish.id]?.events.find(
+                    (event) =>
+                      event.status === "missed" ||
+                      event.status === "due" ||
+                      event.status === "upcoming",
+                  );
 
-          <CueCard event={nextCue} remainingLabel={nextCueRemaining} />
-
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <AppText variant="headline">{t("dish.activeDishes")}</AppText>
-              <AppText tone="secondary" variant="caption">
-                {t("dish.total", { count: currentSession.dishes.length })}
-              </AppText>
-            </View>
-
-            <View style={styles.dishList}>
-              {currentSession.dishes.map((dish) => {
-                const dishNextEvent = eventsByDish?.[dish.id]?.events.find(
-                  (event) =>
-                    event.status === "missed" ||
-                    event.status === "due" ||
-                    event.status === "upcoming",
-                );
-
-                return (
-                  <DishCard
-                    dish={dish}
-                    key={dish.id}
-                    nextEvent={dishNextEvent}
-                  />
-                );
-              })}
+                  return (
+                    <DishCard
+                      dish={dish}
+                      key={dish.id}
+                      nextEvent={dishNextEvent}
+                    />
+                  );
+                })}
+              </View>
             </View>
           </View>
-        </View>
-      ) : (
-        <StateCard
-          actionTitle={t("action.newSession")}
-          message={t("empty.noActiveMessage")}
-          onActionPress={handleStartCookingSession}
-          title={t("empty.noActiveTitle")}
+        ) : (
+          <StateCard
+            actionTitle={t("action.newSession")}
+            message={t("empty.noActiveMessage")}
+            onActionPress={handleStartCookingSession}
+            title={t("empty.noActiveTitle")}
+          />
+        )}
+      </Screen>
+
+      {isLoadingIntroVisible ? (
+        <CueYoriLoadingScreen
+          onFinish={handleLoadingIntroFinish}
+          style={styles.loadingOverlay}
         />
-      )}
-    </Screen>
+      ) : null}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 10,
+  },
   header: {
     gap: spacing.xl,
   },

@@ -4,7 +4,8 @@ import {
   Easing,
   Image,
   StyleSheet,
-  View,
+  type StyleProp,
+  type ViewStyle,
 } from "react-native";
 
 import { brand, colors } from "../../theme";
@@ -16,9 +17,60 @@ const splashHeat = require("../../../assets/brand/cueyori-splash-lockup-heat.png
 const splashSize = Image.resolveAssetSource(splashBase);
 const splashAspectRatio = splashSize.width / splashSize.height;
 
-export function CueYoriLoadingScreen() {
+const splashIntroDurationMs = 420;
+const splashHoldDurationMs = 700;
+const splashExitFadeDurationMs = 260;
+
+type CueYoriLoadingScreenProps = {
+  onFinish?: () => void;
+  style?: StyleProp<ViewStyle>;
+};
+
+export function CueYoriLoadingScreen({
+  onFinish,
+  style,
+}: CueYoriLoadingScreenProps) {
   const { t } = useTranslation();
+  const screenOpacity = useRef(new Animated.Value(1)).current;
+  const lockupOpacity = useRef(new Animated.Value(0)).current;
+  const lockupScale = useRef(new Animated.Value(0.9)).current;
   const heatProgress = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const introAnimation = Animated.sequence([
+      Animated.parallel([
+        Animated.timing(lockupOpacity, {
+          toValue: 1,
+          duration: splashIntroDurationMs,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(lockupScale, {
+          toValue: 1,
+          duration: splashIntroDurationMs,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.delay(splashHoldDurationMs),
+      Animated.timing(screenOpacity, {
+        toValue: 0,
+        duration: splashExitFadeDurationMs,
+        easing: Easing.inOut(Easing.quad),
+        useNativeDriver: true,
+      }),
+    ]);
+
+    introAnimation.start(({ finished }) => {
+      if (finished) {
+        onFinish?.();
+      }
+    });
+
+    return () => {
+      introAnimation.stop();
+    };
+  }, [lockupOpacity, lockupScale, onFinish, screenOpacity]);
 
   useEffect(() => {
     const heatAnimation = Animated.loop(
@@ -61,11 +113,25 @@ export function CueYoriLoadingScreen() {
   });
 
   return (
-    <View style={styles.screen}>
-      <View
+    <Animated.View
+      style={[
+        styles.screen,
+        style,
+        {
+          opacity: screenOpacity,
+        },
+      ]}
+    >
+      <Animated.View
         accessibilityLabel={t("app.loading")}
         accessibilityRole="image"
-        style={styles.lockup}
+        style={[
+          styles.lockup,
+          {
+            opacity: lockupOpacity,
+            transform: [{ scale: lockupScale }],
+          },
+        ]}
       >
         <Image
           resizeMode="contain"
@@ -87,8 +153,8 @@ export function CueYoriLoadingScreen() {
             },
           ]}
         />
-      </View>
-    </View>
+      </Animated.View>
+    </Animated.View>
   );
 }
 
