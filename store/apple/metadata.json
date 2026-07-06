@@ -1,0 +1,23 @@
+{
+  "name": "CueYori",
+  "subtitle": "Cook everything right on cue",
+  "primaryCategory": "FOOD_AND_DRINK",
+  "secondaryCategory": "PRODUCTIVITY",
+  "promotionalText": "Coordinate every dish in one calm cooking timeline.",
+  "description": "CueYori helps home cooks coordinate multiple dishes at the same time. Create a cooking session, add dishes and stages, then follow one unified timeline that keeps the next cue clear. It is built for the moment when chicken, rice, pasta, and vegetables all need attention at different times.\n\nCueYori is not a basic timer. It organizes the cooking workflow around actions: prep, stir, flip, check, rest, finish, and more. Local notifications can remind you when a stage needs attention, while the session screen shows what is due, what is next, and what is already complete.\n\nCurrent features:\n- Create cooking sessions\n- Add custom dishes and cooking stages\n- Edit dishes and stages while cooking\n- See one unified timeline across all dishes\n- Mark stages done or undo them\n- Pause, resume, complete, or reset a session\n- Use local notifications for cooking cues\n- Works offline with no account required",
+  "keywords": [
+    "cooking",
+    "kitchen",
+    "meal prep",
+    "recipe",
+    "timeline",
+    "food",
+    "dinner",
+    "home cooking"
+  ],
+  "supportUrl": "TODO",
+  "marketingUrl": "TODO",
+  "privacyPolicyUrl": "TODO",
+  "copyright": "2026 CueYori",
+  "reviewNotes": "CueYori is an offline-first cooking workflow assistant. The app uses local notifications only; it does not require an account, backend service, analytics SDK, ads, or push notification token registration in the current MVP."
+}

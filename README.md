@@ -35,3 +35,4 @@ npm run ios
 - Active cooking session screen
 - Add/edit/delete dish and stage flows
 - Brand icon, splash assets, dark-mode color system, haptics, and polished state cards
+- Production build config and store release metadata drafts

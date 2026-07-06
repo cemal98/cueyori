@@ -1,0 +1,19 @@
+{
+  "title": "CueYori",
+  "shortDescription": "Coordinate every dish in one cooking timeline.",
+  "fullDescription": "CueYori helps home cooks manage multiple dishes at once with one clear cooking workflow. Add dishes, define cooking stages, and follow a unified timeline that tells you what needs attention next.\n\nCueYori is designed for real kitchen coordination, not isolated countdown timers. Use it when several dishes are moving at different speeds and you need the next action to be obvious.\n\nFeatures:\n- Create active cooking sessions\n- Add custom dishes and cooking stages\n- Edit dish timing while cooking\n- Combine all stages into one timeline\n- Mark cues done or undo them\n- Pause, resume, complete, or reset sessions\n- Use local notifications for cooking cues\n- Works offline with no account required",
+  "category": "FOOD_AND_DRINK",
+  "tags": [
+    "cooking",
+    "meal prep",
+    "kitchen",
+    "timer",
+    "food"
+  ],
+  "contactEmail": "TODO",
+  "website": "TODO",
+  "privacyPolicyUrl": "TODO",
+  "releaseNotes": {
+    "0.1.0": "Initial CueYori MVP with cooking sessions, custom dishes, unified timelines, local notifications, and brand-ready mobile UI."
+  }
+}
