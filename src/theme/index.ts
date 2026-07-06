@@ -1,6 +1,8 @@
 import {
   DynamicColorIOS,
   Platform,
+  useColorScheme,
+  type ColorSchemeName,
   type ColorValue,
   type TextStyle,
 } from "react-native";
@@ -12,6 +14,54 @@ type ThemeColor = {
 
 const adaptiveColor = ({ light, dark }: ThemeColor): ColorValue =>
   Platform.OS === "ios" ? DynamicColorIOS({ light, dark }) : light;
+
+export const colorPalette = {
+  light: {
+    background: "#f6efe5",
+    backgroundMuted: "#efe4d6",
+    surface: "#fffaf2",
+    surfaceMuted: "#f3e8da",
+    charcoal: "#24211d",
+    charcoalMuted: "#6f675e",
+    charcoalSubtle: "#91877c",
+    accent: "#c7663a",
+    accentDark: "#8f3f22",
+    accentSoft: "#f0c7ae",
+    success: "#5b7c4f",
+    warning: "#a8662d",
+    danger: "#a94734",
+    border: "#e2d4c5",
+    borderStrong: "#24211d",
+    inverse: "#fffaf2",
+  },
+  dark: {
+    background: "#15110f",
+    backgroundMuted: "#1c1713",
+    surface: "#211b17",
+    surfaceMuted: "#2b241f",
+    charcoal: "#f7efe6",
+    charcoalMuted: "#d4c6b9",
+    charcoalSubtle: "#a99b8f",
+    accent: "#d78152",
+    accentDark: "#f0a06f",
+    accentSoft: "#4a2b1f",
+    success: "#9abb86",
+    warning: "#e0a45f",
+    danger: "#e48672",
+    border: "#3b3028",
+    borderStrong: "#f7efe6",
+    inverse: "#15110f",
+  },
+} as const;
+
+const resolveScheme = (scheme: ColorSchemeName) =>
+  scheme === "dark" ? "dark" : "light";
+
+export const useThemeColors = () => {
+  const colorScheme = useColorScheme();
+
+  return colorPalette[resolveScheme(colorScheme)];
+};
 
 export const colors = {
   background: adaptiveColor({ light: "#f6efe5", dark: "#15110f" }),
@@ -28,6 +78,7 @@ export const colors = {
   warning: adaptiveColor({ light: "#a8662d", dark: "#e0a45f" }),
   danger: adaptiveColor({ light: "#a94734", dark: "#e48672" }),
   border: adaptiveColor({ light: "#e2d4c5", dark: "#3b3028" }),
+  borderStrong: adaptiveColor({ light: "#24211d", dark: "#f7efe6" }),
   inverse: adaptiveColor({ light: "#fffaf2", dark: "#15110f" }),
 } as const;
 

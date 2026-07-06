@@ -1,7 +1,7 @@
 import type { KeyboardTypeOptions, TextInputProps } from "react-native";
 import { StyleSheet, TextInput, View } from "react-native";
 
-import { colors, radii, spacing } from "../../theme";
+import { colors, radii, spacing, useThemeColors } from "../../theme";
 import { AppText } from "./AppText";
 
 type TextFieldProps = Omit<
@@ -23,6 +23,8 @@ export function TextField({
   keyboardType = "default",
   ...inputProps
 }: TextFieldProps) {
+  const themeColors = useThemeColors();
+
   return (
     <View style={styles.stack}>
       <AppText variant="label">{label}</AppText>
@@ -36,7 +38,14 @@ export function TextField({
         onChangeText={onChangeText}
         placeholderTextColor={colors.charcoalSubtle}
         selectionColor={colors.accent}
-        style={[styles.input, error && styles.inputError]}
+        style={[
+          styles.input,
+          {
+            borderColor: error
+              ? themeColors.accentDark
+              : themeColors.borderStrong,
+          },
+        ]}
         value={value}
         {...inputProps}
       />
@@ -56,16 +65,12 @@ const styles = StyleSheet.create({
   input: {
     minHeight: 54,
     borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: 1.2,
     backgroundColor: colors.surface,
     color: colors.charcoal,
     fontSize: 17,
     lineHeight: 23,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-  },
-  inputError: {
-    borderColor: colors.accentDark,
   },
 });

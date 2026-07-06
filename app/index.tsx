@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "expo-router";
-import { StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 
 import { CueYoriLoadingScreen } from "../src/components/brand/CueYoriLoadingScreen";
-import { AppText, Button, Card, Screen, StateCard } from "../src/components";
+import { AppText, Button, Card, Screen } from "../src/components";
 import { useTranslation } from "../src/i18n";
 import {
   CueCard,
@@ -17,12 +17,14 @@ import {
   TimerBadge,
   useCookingStore,
 } from "../src/features/cooking";
-import { brand, spacing } from "../src/theme";
+import { brand, colors, radii, spacing, useThemeColors } from "../src/theme";
 
+const emptyStateIcon = require("../assets/brand/cueyori-app-icon.png");
 const dashboardRefreshMs = 30000;
 
 export default function HomeScreen() {
   const router = useRouter();
+  const themeColors = useThemeColors();
   const [isLoadingIntroVisible, setIsLoadingIntroVisible] = useState(true);
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [now, setNow] = useState(() => new Date());
@@ -120,10 +122,6 @@ export default function HomeScreen() {
     });
   }, [currentSession, router]);
 
-  const handleOpenSettings = useCallback(() => {
-    router.push("/settings" as never);
-  }, [router]);
-
   const handleLoadingIntroFinish = useCallback(() => {
     setIsLoadingIntroVisible(false);
   }, []);
@@ -133,110 +131,119 @@ export default function HomeScreen() {
       <Screen>
         <View style={styles.header}>
           <View style={styles.brandBlock}>
-            <AppText variant="largeTitle">{brand.name}</AppText>
-            <AppText tone="secondary" variant="body">
+            <AppText variant="headline">{brand.name}</AppText>
+            <AppText tone="secondary" variant="caption">
               {t("app.tagline")}
             </AppText>
           </View>
-
-          <Button
-            accessibilityLabel={t("action.viewSettings")}
-            onPress={handleOpenSettings}
-            title={t("action.viewSettings")}
-            variant="ghost"
-          />
-
-          <Button
-            accessibilityHint={t("home.preparingMessage")}
-            accessibilityLabel={t("action.newSession")}
-            disabled={isStartingSession}
-            haptic="confirm"
-            onPress={handleStartCookingSession}
-            title={
-              isStartingSession
-                ? t("home.preparing")
-                : t("action.newSession")
-            }
-          />
         </View>
 
-        {isStartingSession ? (
-          <StateCard
-            message={t("home.preparingMessage")}
-            title={t("home.preparingTitle")}
-            tone="loading"
-          />
-        ) : null}
-
         {currentSession ? (
-          <View style={styles.dashboardStack}>
-            <Card
-              accessibilityHint={t("session.timelineTitle")}
-              accessibilityLabel={t("home.currentSession")}
-              onPress={handleOpenCurrentSession}
-            >
-              <View style={styles.sessionCard}>
-                <View style={styles.sessionCopy}>
-                  <AppText tone="secondary" variant="label">
-                    {t("home.currentSession")}
-                  </AppText>
-                  <AppText variant="headline">
-                    {getSessionDisplayTitle(
-                      currentSession.title,
-                      t("session.defaultTitle"),
-                    )}
-                  </AppText>
-                  <AppText tone="secondary" variant="body">
-                    {t("dish.dishesInMotion", {
-                      count: currentSession.dishes.length,
-                    })}
-                  </AppText>
-                </View>
-
-                <TimerBadge
-                  label={t("label.progress")}
-                  value={`${timelineProgress?.completionPercent ?? 0}%`}
-                />
-              </View>
-            </Card>
-
-            <CueCard event={nextCue} remainingLabel={nextCueRemaining} />
+          <>
+            <CueCard
+              event={nextCue}
+              remainingLabel={nextCueRemaining}
+              variant="hero"
+            />
 
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <AppText variant="headline">{t("dish.activeDishes")}</AppText>
-                <AppText tone="secondary" variant="caption">
-                  {t("dish.total", { count: currentSession.dishes.length })}
+                <View style={styles.sectionTitleGroup}>
+                  <AppText variant="headline">{t("home.activeCooking")}</AppText>
+                  <AppText tone="secondary" variant="caption">
+                    {t("dish.total", { count: currentSession.dishes.length })}
+                  </AppText>
+                </View>
+              </View>
+
+              <View style={styles.activeCookingStack}>
+                <Card
+                  accessibilityHint={t("session.timelineTitle")}
+                  accessibilityLabel={t("home.currentSession")}
+                  onPress={handleOpenCurrentSession}
+                >
+                  <View style={styles.sessionCard}>
+                    <View style={styles.sessionCopy}>
+                      <AppText tone="secondary" variant="label">
+                        {t("home.currentSession")}
+                      </AppText>
+                      <AppText variant="headline">
+                        {getSessionDisplayTitle(
+                          currentSession.title,
+                          t("session.defaultTitle"),
+                        )}
+                      </AppText>
+                      <AppText tone="secondary" variant="body">
+                        {t("dish.dishesInMotion", {
+                          count: currentSession.dishes.length,
+                        })}
+                      </AppText>
+                    </View>
+
+                    <TimerBadge
+                      label={t("label.progress")}
+                      value={`${timelineProgress?.completionPercent ?? 0}%`}
+                    />
+                  </View>
+                </Card>
+
+                <View style={styles.dishList}>
+                  {currentSession.dishes.map((dish) => {
+                    const dishNextEvent = eventsByDish?.[dish.id]?.events.find(
+                      (event) =>
+                        event.status === "missed" ||
+                        event.status === "due" ||
+                        event.status === "upcoming",
+                    );
+
+                    return (
+                      <DishCard
+                        dish={dish}
+                        key={dish.id}
+                        nextEvent={dishNextEvent}
+                      />
+                    );
+                  })}
+                </View>
+              </View>
+            </View>
+          </>
+        ) : (
+          <Card tone="muted">
+            <View style={styles.emptyState}>
+              <View
+                style={[
+                  styles.emptyIconFrame,
+                  { borderColor: themeColors.borderStrong },
+                ]}
+              >
+                <Image
+                  accessibilityIgnoresInvertColors
+                  resizeMode="contain"
+                  source={emptyStateIcon}
+                  style={styles.emptyIcon}
+                />
+              </View>
+
+              <View style={styles.emptyCopy}>
+                <AppText align="center" variant="title">
+                  {t("home.emptyTitle")}
+                </AppText>
+                <AppText align="center" tone="secondary" variant="body">
+                  {t("home.emptySubtitle")}
                 </AppText>
               </View>
 
-              <View style={styles.dishList}>
-                {currentSession.dishes.map((dish) => {
-                  const dishNextEvent = eventsByDish?.[dish.id]?.events.find(
-                    (event) =>
-                      event.status === "missed" ||
-                      event.status === "due" ||
-                      event.status === "upcoming",
-                  );
-
-                  return (
-                    <DishCard
-                      dish={dish}
-                      key={dish.id}
-                      nextEvent={dishNextEvent}
-                    />
-                  );
-                })}
-              </View>
+              <Button
+                accessibilityHint={t("home.emptySubtitle")}
+                accessibilityLabel={t("action.newSession")}
+                disabled={isStartingSession}
+                haptic="confirm"
+                onPress={handleStartCookingSession}
+                title={t("action.newSession")}
+              />
             </View>
-          </View>
-        ) : (
-          <StateCard
-            actionTitle={t("action.newSession")}
-            message={t("empty.noActiveMessage")}
-            onActionPress={handleStartCookingSession}
-            title={t("empty.noActiveTitle")}
-          />
+          </Card>
         )}
       </Screen>
 
@@ -259,13 +266,37 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   header: {
-    gap: spacing.xl,
-  },
-  brandBlock: {
     gap: spacing.sm,
   },
-  dashboardStack: {
+  brandBlock: {
+    gap: spacing.xs,
+  },
+  emptyState: {
+    alignItems: "center",
     gap: spacing.xl,
+    paddingVertical: spacing["2xl"],
+  },
+  emptyIconFrame: {
+    width: 96,
+    height: 96,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    borderRadius: radii.md,
+    borderWidth: 1.2,
+    backgroundColor: colors.surface,
+  },
+  emptyIcon: {
+    width: 76,
+    height: 76,
+  },
+  emptyCopy: {
+    alignItems: "center",
+    gap: spacing.sm,
+    maxWidth: 320,
+  },
+  activeCookingStack: {
+    gap: spacing.md,
   },
   sessionCard: {
     alignItems: "flex-start",
@@ -278,13 +309,17 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   section: {
-    gap: spacing.md,
+    gap: spacing.lg,
   },
   sectionHeader: {
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
     gap: spacing.md,
+  },
+  sectionTitleGroup: {
+    flex: 1,
+    gap: spacing.xs,
   },
   dishList: {
     gap: spacing.md,

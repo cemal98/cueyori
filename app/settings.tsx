@@ -15,7 +15,7 @@ import {
 } from "../src/features/preferences";
 import { useTranslation } from "../src/i18n";
 import type { TranslationKey } from "../src/i18n";
-import { colors, radii, spacing } from "../src/theme";
+import { colors, radii, spacing, useThemeColors } from "../src/theme";
 
 const themeOptions: ThemePreference[] = ["system", "light", "dark"];
 const languageOptions: LanguageCode[] = ["en", "tr"];
@@ -121,6 +121,8 @@ function PreferenceOption({
   isSelected,
   onPress,
 }: PreferenceOptionProps) {
+  const themeColors = useThemeColors();
+
   return (
     <Pressable
       accessibilityLabel={label}
@@ -129,6 +131,7 @@ function PreferenceOption({
       onPress={onPress}
       style={({ pressed }) => [
         styles.option,
+        { borderColor: themeColors.borderStrong },
         isSelected && styles.optionSelected,
         pressed && styles.optionPressed,
       ]}
@@ -166,14 +169,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: 1.2,
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   optionSelected: {
-    borderColor: colors.accentDark,
     backgroundColor: colors.accentDark,
   },
   optionPressed: {

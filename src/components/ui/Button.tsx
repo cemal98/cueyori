@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { AccessibilityState } from "react-native";
 import { Pressable, StyleSheet, View } from "react-native";
 
-import { colors, radii, spacing } from "../../theme";
+import { colors, radii, spacing, useThemeColors } from "../../theme";
 import { playHaptic, type HapticIntent } from "../../utils/haptics";
 import { AppText } from "./AppText";
 
@@ -32,6 +32,7 @@ export function Button({
   leading,
   haptic = "selection",
 }: ButtonProps) {
+  const themeColors = useThemeColors();
   const accessibilityState: AccessibilityState = {
     disabled,
   };
@@ -57,6 +58,7 @@ export function Button({
         styles.base,
         sizes[size],
         variants[variant],
+        { borderColor: themeColors.borderStrong },
         disabled && styles.disabled,
         pressed && !disabled && styles.pressed,
       ]}
@@ -83,6 +85,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.sm,
     borderRadius: radii.pill,
+    borderWidth: 1.6,
   },
   leading: {
     alignItems: "center",
@@ -117,7 +120,5 @@ const variants = StyleSheet.create({
   },
   ghost: {
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
 });

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
-import { colors, radii, spacing } from "../../theme";
+import { colors, radii, spacing, useThemeColors } from "../../theme";
 import { playHaptic } from "../../utils/haptics";
 
 type CardTone = "default" | "muted" | "accent" | "dark";
@@ -21,6 +21,8 @@ export function Card({
   accessibilityLabel,
   accessibilityHint,
 }: CardProps) {
+  const themeColors = useThemeColors();
+
   if (onPress) {
     const handlePress = () => {
       void playHaptic("selection");
@@ -37,6 +39,7 @@ export function Card({
         style={({ pressed }) => [
           styles.base,
           tones[tone],
+          { borderColor: themeColors.borderStrong },
           pressed && styles.pressed,
         ]}
       >
@@ -45,13 +48,23 @@ export function Card({
     );
   }
 
-  return <View style={[styles.base, tones[tone]]}>{children}</View>;
+  return (
+    <View
+      style={[
+        styles.base,
+        tones[tone],
+        { borderColor: themeColors.borderStrong },
+      ]}
+    >
+      {children}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
   base: {
     borderRadius: radii.md,
-    borderWidth: 1,
+    borderWidth: 1.6,
     padding: spacing.xl,
     shadowColor: colors.accentDark,
     shadowOffset: {
@@ -71,18 +84,14 @@ const styles = StyleSheet.create({
 const tones = StyleSheet.create({
   default: {
     backgroundColor: colors.surface,
-    borderColor: colors.border,
   },
   muted: {
     backgroundColor: colors.surfaceMuted,
-    borderColor: colors.border,
   },
   accent: {
     backgroundColor: colors.accentSoft,
-    borderColor: colors.accentSoft,
   },
   dark: {
     backgroundColor: colors.charcoal,
-    borderColor: colors.charcoal,
   },
 });

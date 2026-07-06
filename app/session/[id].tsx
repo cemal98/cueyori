@@ -1,8 +1,9 @@
+import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card, Screen, StateCard } from "../../src/components";
+import { AppText, Screen, StateCard } from "../../src/components";
 import {
   completeCookingStage,
   CueCard,
@@ -27,8 +28,10 @@ import {
 } from "../../src/features/cooking";
 import { useTranslation } from "../../src/i18n";
 import { colors, radii, spacing } from "../../src/theme";
+import { playHaptic, type HapticIntent } from "../../src/utils/haptics";
 
 const sessionRefreshMs = 15000;
+const sessionBorderColor = "#24211d";
 
 type BusyAction =
   | "start"
@@ -54,6 +57,91 @@ const getStageStats = (session: CookingSession) => {
     remainingStages: stages.length - completedStages,
   };
 };
+
+type SessionButtonVariant = "primary" | "secondary" | "ghost";
+type SessionButtonSize = "regular" | "small";
+
+type SessionButtonProps = {
+  title: string;
+  onPress: () => void;
+  variant?: SessionButtonVariant;
+  size?: SessionButtonSize;
+  disabled?: boolean;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+  haptic?: HapticIntent | "none";
+};
+
+function SessionButton({
+  title,
+  onPress,
+  variant = "primary",
+  size = "regular",
+  disabled = false,
+  accessibilityLabel,
+  accessibilityHint,
+  haptic = "selection",
+}: SessionButtonProps) {
+  const handlePress = () => {
+    if (haptic !== "none") {
+      void playHaptic(haptic);
+    }
+
+    onPress();
+  };
+
+  return (
+    <Pressable
+      accessibilityHint={accessibilityHint}
+      accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      hitSlop={6}
+      onPress={handlePress}
+      style={({ pressed }) => [
+        styles.sessionButton,
+        size === "small" ? styles.sessionButtonSmall : styles.sessionButtonRegular,
+        variant === "primary"
+          ? styles.sessionButtonPrimary
+          : variant === "secondary"
+            ? styles.sessionButtonSecondary
+            : styles.sessionButtonGhost,
+        disabled && styles.sessionButtonDisabled,
+        pressed && !disabled && styles.sessionButtonPressed,
+      ]}
+    >
+      <AppText
+        align="center"
+        adjustsFontSizeToFit
+        minimumFontScale={0.85}
+        numberOfLines={1}
+        tone={variant === "primary" ? "inverse" : "accent"}
+        variant="label"
+      >
+        {title}
+      </AppText>
+    </Pressable>
+  );
+}
+
+type SessionPanelProps = {
+  children: ReactNode;
+  tone?: "default" | "muted";
+};
+
+function SessionPanel({ children, tone = "default" }: SessionPanelProps) {
+  return (
+    <View
+      style={[
+        styles.sessionPanel,
+        tone === "muted" && styles.sessionPanelMuted,
+      ]}
+    >
+      {children}
+    </View>
+  );
+}
 
 export default function ActiveCookingSessionScreen() {
   const router = useRouter();
@@ -290,7 +378,7 @@ export default function ActiveCookingSessionScreen() {
     return (
       <Screen>
         <View style={styles.header}>
-          <Button onPress={handleGoHome} title="Back Home" variant="ghost" />
+          <SessionButton onPress={handleGoHome} title="Back Home" variant="ghost" />
           <StateCard
             actionTitle={t("action.backHome")}
             message={t("session.missingMessage")}
@@ -320,7 +408,7 @@ export default function ActiveCookingSessionScreen() {
   return (
     <Screen>
       <View style={styles.header}>
-        <Button
+        <SessionButton
           accessibilityLabel={t("action.backHome")}
           onPress={handleGoHome}
           title={t("action.backHome")}
@@ -342,7 +430,7 @@ export default function ActiveCookingSessionScreen() {
           </AppText>
         </View>
 
-        <Button
+        <SessionButton
           accessibilityLabel={t("action.addDish")}
           accessibilityHint={t("dish.formSubtitle")}
           disabled={session.status === "finished"}
@@ -352,17 +440,27 @@ export default function ActiveCookingSessionScreen() {
         />
       </View>
 
-      <CueCard
-        actionDisabled={nextCue ? busyAction === `stage:${nextCue.stageId}` : true}
-        actionTitle={nextCue ? t("action.done") : undefined}
-        emptyMessage={emptyCueCopy.message}
-        emptyTitle={emptyCueCopy.title}
-        event={nextCue}
-        onActionPress={nextCue ? handleCompleteNextCue : undefined}
-        remainingLabel={nextCueRemaining}
-      />
+      {nextCue ? (
+        <CueCard
+          actionDisabled={busyAction === `stage:${nextCue.stageId}`}
+          actionTitle={t("action.done")}
+          event={nextCue}
+          onActionPress={handleCompleteNextCue}
+          remainingLabel={nextCueRemaining}
+        />
+      ) : (
+        <SessionPanel tone="muted">
+          <View style={styles.emptyCueStack}>
+            <AppText tone="secondary" variant="label">
+              {t("label.nextCue")}
+            </AppText>
+            <AppText variant="headline">{emptyCueCopy.title}</AppText>
+            <AppText tone="secondary">{emptyCueCopy.message}</AppText>
+          </View>
+        </SessionPanel>
+      )}
 
-      <Card>
+      <SessionPanel>
         <View style={styles.controlStack}>
           <View style={styles.progressRow}>
             <View>
@@ -385,7 +483,7 @@ export default function ActiveCookingSessionScreen() {
 
           <View style={styles.controlGrid}>
             {canStart ? (
-              <Button
+              <SessionButton
                 disabled={controlsDisabled || stageStats.totalStages === 0}
                 haptic="confirm"
                 onPress={handleStart}
@@ -396,7 +494,7 @@ export default function ActiveCookingSessionScreen() {
             ) : null}
 
             {canPause ? (
-              <Button
+              <SessionButton
                 disabled={controlsDisabled}
                 haptic="warning"
                 onPress={handlePause}
@@ -407,7 +505,7 @@ export default function ActiveCookingSessionScreen() {
             ) : null}
 
             {canResume ? (
-              <Button
+              <SessionButton
                 disabled={controlsDisabled}
                 haptic="confirm"
                 onPress={handleResume}
@@ -417,7 +515,7 @@ export default function ActiveCookingSessionScreen() {
               />
             ) : null}
 
-            <Button
+            <SessionButton
               disabled={
                 controlsDisabled ||
                 session.status === "draft" ||
@@ -433,7 +531,7 @@ export default function ActiveCookingSessionScreen() {
               }
               variant="secondary"
             />
-            <Button
+            <SessionButton
               disabled={controlsDisabled}
               haptic="warning"
               onPress={handleReset}
@@ -443,7 +541,7 @@ export default function ActiveCookingSessionScreen() {
             />
           </View>
         </View>
-      </Card>
+      </SessionPanel>
 
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
@@ -467,11 +565,11 @@ export default function ActiveCookingSessionScreen() {
               />
             ))
           ) : (
-            <Card tone="muted">
+            <SessionPanel tone="muted">
               <AppText tone="secondary">
                 {t("session.timelineEmpty")}
               </AppText>
-            </Card>
+            </SessionPanel>
           )}
         </View>
       </View>
@@ -492,7 +590,7 @@ export default function ActiveCookingSessionScreen() {
             ).length;
 
             return (
-              <Card key={dish.id}>
+              <SessionPanel key={dish.id}>
                 <View style={styles.dishGroup}>
                   <View style={styles.dishHeader}>
                     <View style={styles.dishTitle}>
@@ -512,7 +610,7 @@ export default function ActiveCookingSessionScreen() {
                           })}
                         </AppText>
                       </View>
-                      <Button
+                      <SessionButton
                         accessibilityLabel={`${t("action.edit")} ${dish.name}`}
                         accessibilityHint={t("dish.editHint")}
                         disabled={session.status === "finished"}
@@ -555,7 +653,7 @@ export default function ActiveCookingSessionScreen() {
                     })}
                   </View>
                 </View>
-              </Card>
+              </SessionPanel>
             );
           })}
         </View>
@@ -565,6 +663,60 @@ export default function ActiveCookingSessionScreen() {
 }
 
 const styles = StyleSheet.create({
+  sessionButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: spacing.sm,
+    borderRadius: radii.pill,
+    borderWidth: 1.6,
+    borderColor: sessionBorderColor,
+  },
+  sessionButtonRegular: {
+    minHeight: 52,
+    paddingHorizontal: spacing["2xl"],
+  },
+  sessionButtonSmall: {
+    minHeight: 44,
+    paddingHorizontal: spacing.lg,
+  },
+  sessionButtonPrimary: {
+    backgroundColor: colors.accentDark,
+  },
+  sessionButtonSecondary: {
+    backgroundColor: colors.accentSoft,
+  },
+  sessionButtonGhost: {
+    backgroundColor: colors.surface,
+  },
+  sessionButtonDisabled: {
+    opacity: 0.52,
+  },
+  sessionButtonPressed: {
+    opacity: 0.82,
+    transform: [{ scale: 0.99 }],
+  },
+  sessionPanel: {
+    borderRadius: radii.md,
+    borderWidth: 1.6,
+    borderColor: sessionBorderColor,
+    backgroundColor: colors.surface,
+    padding: spacing.xl,
+    shadowColor: colors.accentDark,
+    shadowOffset: {
+      width: 0,
+      height: 12,
+    },
+    shadowOpacity: 0.07,
+    shadowRadius: 24,
+    elevation: 2,
+  },
+  sessionPanelMuted: {
+    backgroundColor: colors.surfaceMuted,
+  },
+  emptyCueStack: {
+    gap: spacing.lg,
+  },
   header: {
     gap: spacing.xl,
   },
@@ -574,6 +726,8 @@ const styles = StyleSheet.create({
   },
   statusPill: {
     borderRadius: radii.md,
+    borderWidth: 1.2,
+    borderColor: sessionBorderColor,
     backgroundColor: colors.accentSoft,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -626,6 +780,8 @@ const styles = StyleSheet.create({
   },
   dishBadge: {
     borderRadius: radii.md,
+    borderWidth: 1.2,
+    borderColor: sessionBorderColor,
     backgroundColor: colors.accentSoft,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,

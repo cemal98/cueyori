@@ -30,7 +30,7 @@ import {
   type DishStageDraft,
 } from "../../../../src/features/cooking";
 import { useTranslation } from "../../../../src/i18n";
-import { colors, radii, spacing } from "../../../../src/theme";
+import { colors, radii, spacing, useThemeColors } from "../../../../src/theme";
 
 type SaveMode = "idle" | "saving" | "deleting";
 
@@ -52,6 +52,7 @@ const getStageKey = (stage: DishStageDraft, index: number) =>
 
 export default function EditDishScreen() {
   const router = useRouter();
+  const themeColors = useThemeColors();
   const params = useLocalSearchParams<{
     id?: string | string[];
     dishId?: string | string[];
@@ -479,6 +480,7 @@ export default function EditDishScreen() {
                     }}
                     style={[
                       styles.actionChip,
+                      { borderColor: themeColors.borderStrong },
                       isSelected && styles.actionChipSelected,
                       (isFinished || isBusy) && styles.disabledControl,
                     ]}
@@ -627,14 +629,12 @@ const styles = StyleSheet.create({
     minHeight: 40,
     justifyContent: "center",
     borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: 1.2,
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   actionChipSelected: {
-    borderColor: colors.accentDark,
     backgroundColor: colors.accentDark,
   },
   disabledControl: {

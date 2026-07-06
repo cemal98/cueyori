@@ -2,7 +2,7 @@ import { StyleSheet, View } from "react-native";
 
 import { AppText } from "../../../components";
 import { useTranslation } from "../../../i18n";
-import { colors, radii, spacing } from "../../../theme";
+import { colors, radii, spacing, useThemeColors } from "../../../theme";
 import {
   cookingActionLabelKeys,
   timelineStatusLabelKeys,
@@ -19,6 +19,7 @@ export function TimelineEventRow({
   remainingLabel,
 }: TimelineEventRowProps) {
   const { t } = useTranslation();
+  const themeColors = useThemeColors();
   const isCompleted = event.status === "completed";
   const isDue = event.status === "due";
   const timeLabel = isCompleted ? t("action.done") : remainingLabel;
@@ -27,6 +28,7 @@ export function TimelineEventRow({
     <View
       style={[
         styles.row,
+        { borderColor: themeColors.borderStrong },
         isDue && styles.dueRow,
         isCompleted && styles.completedRow,
       ]}
@@ -76,6 +78,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.md,
     borderRadius: radii.md,
+    borderWidth: 1.2,
     backgroundColor: colors.surface,
     padding: spacing.md,
   },

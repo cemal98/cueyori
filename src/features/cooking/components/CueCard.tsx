@@ -7,6 +7,8 @@ import { cookingActionLabelKeys } from "../utils/cookingLabels";
 import type { CookingTimelineEvent } from "../utils/timelineEngine";
 import { TimerBadge } from "./TimerBadge";
 
+type CueCardVariant = "default" | "hero";
+
 type CueCardProps = {
   event?: CookingTimelineEvent;
   remainingLabel?: string;
@@ -15,6 +17,7 @@ type CueCardProps = {
   actionTitle?: string;
   onActionPress?: () => void;
   actionDisabled?: boolean;
+  variant?: CueCardVariant;
 };
 
 export function CueCard({
@@ -25,19 +28,23 @@ export function CueCard({
   actionTitle,
   onActionPress,
   actionDisabled = false,
+  variant = "default",
 }: CueCardProps) {
   const { t } = useTranslation();
+  const isHero = variant === "hero";
   const resolvedEmptyTitle = emptyTitle ?? t("session.allClearTitle");
   const resolvedEmptyMessage = emptyMessage ?? t("session.allClearMessage");
 
   if (!event) {
     return (
       <Card tone="muted">
-        <View style={styles.stack}>
+        <View style={[styles.stack, isHero && styles.heroStack]}>
           <AppText tone="secondary" variant="label">
             {t("label.nextCue")}
           </AppText>
-          <AppText variant="headline">{resolvedEmptyTitle}</AppText>
+          <AppText variant={isHero ? "title" : "headline"}>
+            {resolvedEmptyTitle}
+          </AppText>
           <AppText tone="secondary">{resolvedEmptyMessage}</AppText>
         </View>
       </Card>
@@ -48,7 +55,7 @@ export function CueCard({
 
   return (
     <Card tone={isAttention ? "dark" : "default"}>
-      <View style={styles.stack}>
+      <View style={[styles.stack, isHero && styles.heroStack]}>
         <View style={styles.header}>
           <AppText tone={isAttention ? "inverse" : "secondary"} variant="label">
             {t("label.nextCue")}
@@ -61,13 +68,20 @@ export function CueCard({
                   ? t("label.timelineStatus.due")
                   : t("label.in")
             }
+            size={isHero ? "large" : "regular"}
             tone={isAttention ? "urgent" : "calm"}
             value={remainingLabel ?? t("time.now")}
           />
         </View>
 
-        <View style={styles.copy}>
-          <AppText tone={isAttention ? "inverse" : "primary"} variant="title">
+        <View style={[styles.copy, isHero && styles.heroCopy]}>
+          <AppText
+            adjustsFontSizeToFit
+            minimumFontScale={0.82}
+            numberOfLines={2}
+            tone={isAttention ? "inverse" : "primary"}
+            variant={isHero ? "largeTitle" : "title"}
+          >
             {event.stageTitle}
           </AppText>
           <AppText tone={isAttention ? "inverse" : "secondary"} variant="body">
@@ -109,6 +123,10 @@ const styles = StyleSheet.create({
   stack: {
     gap: spacing.lg,
   },
+  heroStack: {
+    minHeight: 214,
+    justifyContent: "space-between",
+  },
   header: {
     alignItems: "flex-start",
     flexDirection: "row",
@@ -117,6 +135,9 @@ const styles = StyleSheet.create({
   },
   copy: {
     gap: spacing.sm,
+  },
+  heroCopy: {
+    gap: spacing.md,
   },
   metaRow: {
     alignItems: "center",

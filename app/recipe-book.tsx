@@ -23,7 +23,7 @@ import {
   type RecipeTemplateStage,
 } from "../src/features/recipe-book";
 import { useTranslation } from "../src/i18n";
-import { colors, radii, spacing } from "../src/theme";
+import { colors, radii, spacing, useThemeColors } from "../src/theme";
 
 const createTemplateStageId = (): string =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
@@ -60,6 +60,7 @@ const getTemplateDuration = (template: RecipeTemplate): number =>
 
 export default function RecipeBookScreen() {
   const router = useRouter();
+  const themeColors = useThemeColors();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [duration, setDuration] = useState("");
@@ -337,7 +338,10 @@ export default function RecipeBookScreen() {
               placeholder={t("recipeBook.noteBodyPlaceholder")}
               placeholderTextColor={colors.charcoalSubtle}
               selectionColor={colors.accent}
-              style={styles.bodyInput}
+              style={[
+                styles.bodyInput,
+                { borderColor: themeColors.borderStrong },
+              ]}
               textAlignVertical="top"
               value={body}
             />
@@ -394,6 +398,7 @@ export default function RecipeBookScreen() {
                       }}
                       style={[
                         styles.actionChip,
+                        { borderColor: themeColors.borderStrong },
                         isSelected && styles.actionChipSelected,
                       ]}
                     >
@@ -426,7 +431,10 @@ export default function RecipeBookScreen() {
                 {stages.map((stage, index) => (
                   <View
                     key={`${stage.id ?? stage.title}-${stage.offsetMinutes}`}
-                    style={styles.stagePreviewRow}
+                    style={[
+                      styles.stagePreviewRow,
+                      { borderColor: themeColors.borderStrong },
+                    ]}
                   >
                     <View style={styles.stagePreviewCopy}>
                       <AppText variant="label">{stage.title}</AppText>
@@ -598,8 +606,7 @@ const styles = StyleSheet.create({
   bodyInput: {
     minHeight: 150,
     borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: 1.2,
     backgroundColor: colors.surface,
     color: colors.charcoal,
     fontSize: 17,
@@ -625,14 +632,12 @@ const styles = StyleSheet.create({
     minHeight: 40,
     justifyContent: "center",
     borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: 1.2,
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   actionChipSelected: {
-    borderColor: colors.accentDark,
     backgroundColor: colors.accentDark,
   },
   stagePreviewList: {
@@ -644,6 +649,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: spacing.md,
     borderRadius: radii.md,
+    borderWidth: 1.2,
     backgroundColor: colors.surfaceMuted,
     padding: spacing.md,
   },

@@ -1,9 +1,8 @@
-import { useMemo } from "react";
 import { usePathname, useRouter } from "expo-router";
-import { Pressable, StyleSheet, useColorScheme, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { useTranslation, type TranslationKey } from "../../i18n";
-import { colors, radii, spacing } from "../../theme";
+import { colors, radii, spacing, useThemeColors } from "../../theme";
 import { AppText } from "../ui/AppText";
 
 type MenuRoute = "/" | "/recipe-book" | "/settings";
@@ -30,28 +29,16 @@ const menuItems: MenuItem[] = [
 
 const visibleRoutes = new Set<string>(["/", "/recipe-book", "/settings"]);
 
+const isRouteActive = (pathname: string, route: MenuRoute) =>
+  route === "/" ? pathname === "/" : pathname === route;
+
 export function MobileMenuBar() {
   const router = useRouter();
   const pathname = usePathname();
-  const colorScheme = useColorScheme();
   const { t } = useTranslation();
-  const isDark = colorScheme === "dark";
+  const themeColors = useThemeColors();
 
   const isVisible = visibleRoutes.has(pathname);
-  const containerStyle = useMemo(
-    () => [
-      styles.container,
-      {
-        backgroundColor: isDark
-          ? "rgba(33, 27, 23, 0.78)"
-          : "rgba(255, 250, 242, 0.78)",
-        borderColor: isDark
-          ? "rgba(240, 160, 111, 0.26)"
-          : "rgba(143, 63, 34, 0.22)",
-      },
-    ],
-    [isDark],
-  );
 
   if (!isVisible) {
     return null;
@@ -59,9 +46,9 @@ export function MobileMenuBar() {
 
   return (
     <View pointerEvents="box-none" style={styles.wrapper}>
-      <View style={containerStyle}>
+      <View style={[styles.container, { borderColor: themeColors.borderStrong }]}>
         {menuItems.map((item) => {
-          const isActive = pathname === item.route;
+          const isActive = isRouteActive(pathname, item.route);
 
           return (
             <Pressable
@@ -77,10 +64,22 @@ export function MobileMenuBar() {
               }}
               style={({ pressed }) => [
                 styles.item,
-                isActive && styles.itemActive,
+                isActive && [
+                  styles.itemActive,
+                  { shadowColor: themeColors.borderStrong },
+                ],
                 pressed && !isActive && styles.itemPressed,
               ]}
             >
+              {isActive ? (
+                <View
+                  pointerEvents="none"
+                  style={[
+                    styles.itemActiveOutline,
+                    { borderColor: themeColors.borderStrong },
+                  ]}
+                />
+              ) : null}
               <View style={[styles.indicator, isActive && styles.indicatorActive]} />
               <AppText
                 align="center"
@@ -116,6 +115,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     borderWidth: 1,
     borderRadius: radii.pill,
+    backgroundColor: colors.surfaceMuted,
     padding: spacing.sm,
   },
   item: {
@@ -125,19 +125,36 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: spacing.xs,
     borderRadius: radii.pill,
+    borderWidth: 2,
+    borderColor: "transparent",
+    backgroundColor: "transparent",
     paddingHorizontal: spacing.sm,
-  },
-  itemActive: {
-    backgroundColor: colors.surface,
   },
   itemPressed: {
     opacity: 0.72,
+  },
+  itemActive: {
+    backgroundColor: colors.surface,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  itemActiveOutline: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: radii.pill,
+    borderWidth: 2,
+    zIndex: 1,
   },
   indicator: {
     width: 18,
     height: 3,
     borderRadius: radii.pill,
     backgroundColor: "transparent",
+    zIndex: 2,
   },
   indicatorActive: {
     backgroundColor: colors.accentDark,

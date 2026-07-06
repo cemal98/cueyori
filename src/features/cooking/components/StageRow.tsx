@@ -2,7 +2,7 @@ import { StyleSheet, View } from "react-native";
 
 import { AppText, Button } from "../../../components";
 import { useTranslation } from "../../../i18n";
-import { colors, radii, spacing } from "../../../theme";
+import { colors, radii, spacing, useThemeColors } from "../../../theme";
 import type { CookingStage } from "../types/cooking.types";
 import {
   cookingActionLabelKeys,
@@ -26,6 +26,7 @@ export function StageRow({
   disabled = false,
 }: StageRowProps) {
   const { t } = useTranslation();
+  const themeColors = useThemeColors();
   const isCompleted = stage.status === "completed" || Boolean(stage.completedAt);
   const statusLabel = isCompleted
     ? t("stage.statusCompleted")
@@ -34,7 +35,13 @@ export function StageRow({
       : t("stage.statusNotScheduled");
 
   return (
-    <View style={[styles.row, isCompleted && styles.completedRow]}>
+    <View
+      style={[
+        styles.row,
+        { borderColor: themeColors.borderStrong },
+        isCompleted && styles.completedRow,
+      ]}
+    >
       <View style={styles.copy}>
         <AppText
           decoration={isCompleted ? "lineThrough" : "none"}
@@ -82,6 +89,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.md,
     borderRadius: radii.md,
+    borderWidth: 1.2,
     backgroundColor: colors.surface,
     padding: spacing.md,
   },

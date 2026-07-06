@@ -27,13 +27,14 @@ import {
   type DishStageDraft,
 } from "../../../src/features/cooking";
 import { useTranslation } from "../../../src/i18n";
-import { colors, radii, spacing } from "../../../src/theme";
+import { colors, radii, spacing, useThemeColors } from "../../../src/theme";
 
 const getRouteId = (id: string | string[] | undefined): string | undefined =>
   Array.isArray(id) ? id[0] : id;
 
 export default function AddDishScreen() {
   const router = useRouter();
+  const themeColors = useThemeColors();
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const sessionId = getRouteId(params.id);
   const sessions = useCookingStore((state) => state.sessions);
@@ -316,6 +317,7 @@ export default function AddDishScreen() {
                     }}
                     style={[
                       styles.actionChip,
+                      { borderColor: themeColors.borderStrong },
                       isSelected && styles.actionChipSelected,
                     ]}
                   >
@@ -424,14 +426,12 @@ const styles = StyleSheet.create({
     minHeight: 40,
     justifyContent: "center",
     borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: 1.2,
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   actionChipSelected: {
-    borderColor: colors.accentDark,
     backgroundColor: colors.accentDark,
   },
   previewSection: {
