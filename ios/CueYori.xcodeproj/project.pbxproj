@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		016860248688161E3D0D1DD8 /* libPods-CueYori.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 06A98627B215BF3AA8A6D3E7 /* libPods-CueYori.a */; };
+		13B07FB71A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		DC5D9755EA6D6323E14B8E0D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5FE77BAB81B81EEDDC8DA98D /* PrivacyInfo.xcprivacy */; };
@@ -193,6 +194,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
+				13B07FB71A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 				DC5D9755EA6D6323E14B8E0D /* PrivacyInfo.xcprivacy in Resources */,
 			);
@@ -330,7 +332,10 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 0CC5BF1BB276FB35CA16F2E8 /* Pods-CueYori.debug.xcconfig */;
 			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
+					ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+					ASSETCATALOG_FILTER_FOR_DEVICE_MODEL = "";
+					ASSETCATALOG_FILTER_FOR_DEVICE_OS_VERSION = "";
+					CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = CueYori/CueYori.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_BITCODE = NO;
@@ -365,7 +370,10 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 3E2C33224698B3CE48A0DDF9 /* Pods-CueYori.release.xcconfig */;
 			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
+					ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+					ASSETCATALOG_FILTER_FOR_DEVICE_MODEL = "";
+					ASSETCATALOG_FILTER_FOR_DEVICE_OS_VERSION = "";
+					CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = CueYori/CueYori.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = CueYori/Info.plist;
