@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { StyleSheet, useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
+import { MobileMenuBar } from "../src/components/navigation";
 import { configureCookingNotificationPresentation } from "../src/features/cooking";
 import { usePreferencesStore } from "../src/features/preferences";
 import { colors } from "../src/theme";
@@ -20,6 +21,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.root}>
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <Stack screenOptions={{ headerShown: false }} />
+      <MobileMenuBar />
     </GestureHandlerRootView>
   );
 }
