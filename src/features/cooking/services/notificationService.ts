@@ -1,5 +1,7 @@
 import * as Notifications from "expo-notifications";
 
+import { usePreferencesStore } from "../../preferences";
+import { translate } from "../../../i18n";
 import type { CookingSession } from "../types/cooking.types";
 import {
   generateTimeline,
@@ -15,6 +17,13 @@ type ScheduledCookingNotification = {
   eventId: CookingTimelineEvent["id"];
   notificationId: string;
 };
+
+type ScheduledNotificationRequest = Awaited<
+  ReturnType<typeof Notifications.getAllScheduledNotificationsAsync>
+>[number];
+type PresentedNotification = Awaited<
+  ReturnType<typeof Notifications.getPresentedNotificationsAsync>
+>[number];
 
 export type CookingNotificationPermissionResult = {
   granted: boolean;
@@ -55,6 +64,25 @@ const eventIdsBySessionId = new Map<
   CookingTimelineEvent["sessionId"],
   Set<CookingTimelineEvent["id"]>
 >();
+
+let isNotificationPresentationConfigured = false;
+
+export const configureCookingNotificationPresentation = (): void => {
+  if (isNotificationPresentationConfigured) {
+    return;
+  }
+
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+
+  isNotificationPresentationConfigured = true;
+};
 
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : "Unknown notification error";
@@ -120,7 +148,83 @@ const buildSkippedResult = (
 });
 
 const buildNotificationBody = (event: CookingTimelineEvent): string =>
-  `${event.dishName} is ready for this step.`;
+  translate(usePreferencesStore.getState().language, "notification.cueReady", {
+    dishName: event.dishName,
+  });
+
+const getCookingNotificationData = (
+  request: ScheduledNotificationRequest | PresentedNotification,
+): Record<string, unknown> | undefined => {
+  const data =
+    "content" in request ? request.content.data : request.request.content.data;
+
+  if (!data || typeof data !== "object") {
+    return undefined;
+  }
+
+  return data as Record<string, unknown>;
+};
+
+const getScheduledCookingRequests = async (): Promise<
+  ScheduledNotificationRequest[]
+> => {
+  try {
+    const requests = await Notifications.getAllScheduledNotificationsAsync();
+
+    return requests.filter((request) => {
+      const data = getCookingNotificationData(request);
+
+      return data?.scope === cookingNotificationScope;
+    });
+  } catch {
+    return [];
+  }
+};
+
+const cancelNotificationIdentifier = async (
+  notificationId: string,
+): Promise<boolean> => {
+  try {
+    await Notifications.cancelScheduledNotificationAsync(notificationId);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const dismissNotificationIdentifier = async (
+  notificationId: string,
+): Promise<boolean> => {
+  try {
+    await Notifications.dismissNotificationAsync(notificationId);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const dismissPresentedCookingNotifications = async (): Promise<
+  number
+> => {
+  try {
+    const notifications = await Notifications.getPresentedNotificationsAsync();
+    const dismissResults = await Promise.all(
+      notifications
+        .filter((notification) => {
+          const data = getCookingNotificationData(notification);
+
+          return data?.scope === cookingNotificationScope;
+        })
+        .map((notification) =>
+          dismissNotificationIdentifier(notification.request.identifier),
+        ),
+    );
+
+    return dismissResults.filter(Boolean).length;
+  } catch {
+    return 0;
+  }
+};
 
 const scheduleTimelineEventNotificationWithPermission = async (
   event: CookingTimelineEvent,
@@ -225,6 +329,7 @@ export const scheduleSessionNotifications = async (
   session: CookingSession,
 ): Promise<CookingNotificationScheduleResult[]> => {
   await cancelSessionNotifications(session.id);
+  await dismissPresentedCookingNotifications();
 
   const now = new Date();
   const permission = await requestCookingNotificationPermissions();
@@ -241,46 +346,87 @@ export const cancelTimelineEventNotification = async (
   eventId: CookingTimelineEvent["id"],
 ): Promise<boolean> => {
   const scheduledNotification = scheduledNotificationsByEventId.get(eventId);
+  const cancelledNotificationIds = new Set<string>();
+  let didCancel = false;
 
-  if (!scheduledNotification) {
-    return false;
-  }
-
-  try {
-    await Notifications.cancelScheduledNotificationAsync(
+  if (scheduledNotification) {
+    didCancel = await cancelNotificationIdentifier(
       scheduledNotification.notificationId,
     );
-    untrackNotification(eventId);
-    return true;
-  } catch {
-    return false;
+    cancelledNotificationIds.add(scheduledNotification.notificationId);
   }
+
+  const matchingRequests = (await getScheduledCookingRequests()).filter(
+    (request) => getCookingNotificationData(request)?.eventId === eventId,
+  );
+
+  const nativeCancelResults = await Promise.all(
+    matchingRequests
+      .filter((request) => !cancelledNotificationIds.has(request.identifier))
+      .map((request) => cancelNotificationIdentifier(request.identifier)),
+  );
+
+  untrackNotification(eventId);
+
+  return didCancel || nativeCancelResults.some(Boolean);
 };
 
 export const cancelSessionNotifications = async (
   sessionId: CookingSession["id"],
 ): Promise<number> => {
-  const eventIds = eventIdsBySessionId.get(sessionId);
+  const eventIds = new Set(eventIdsBySessionId.get(sessionId) ?? []);
+  const scheduledRequests = await getScheduledCookingRequests();
 
-  if (!eventIds) {
-    return 0;
-  }
+  scheduledRequests.forEach((request) => {
+    const eventId = getCookingNotificationData(request)?.eventId;
 
-  const cancelResults = await Promise.all(
-    Array.from(eventIds).map((eventId) =>
-      cancelTimelineEventNotification(eventId),
-    ),
+    if (
+      typeof eventId === "string" &&
+      getCookingNotificationData(request)?.sessionId === sessionId
+    ) {
+      eventIds.add(eventId);
+    }
+  });
+
+  const eventCancelResults = await Promise.all(
+    Array.from(eventIds).map(cancelTimelineEventNotification),
   );
 
-  return cancelResults.filter(Boolean).length;
+  const remainingRequestResults = await Promise.all(
+    scheduledRequests
+      .filter(
+        (request) =>
+          getCookingNotificationData(request)?.sessionId === sessionId &&
+          !eventIds.has(String(getCookingNotificationData(request)?.eventId)),
+      )
+      .map((request) => cancelNotificationIdentifier(request.identifier)),
+  );
+
+  eventIdsBySessionId.delete(sessionId);
+
+  return [...eventCancelResults, ...remainingRequestResults].filter(Boolean)
+    .length;
 };
 
 export const cancelAllCookingNotifications = async (): Promise<number> => {
-  const cancelResults = await Promise.all(
+  const trackedCancelResults = await Promise.all(
     Array.from(scheduledNotificationsByEventId.keys()).map((eventId) =>
       cancelTimelineEventNotification(eventId),
     ),
   );
+  const scheduledRequests = await getScheduledCookingRequests();
+  const nativeCancelResults = await Promise.all(
+    scheduledRequests.map((request) =>
+      cancelNotificationIdentifier(request.identifier),
+    ),
+  );
 
-  return cancelResults.filter(Boolean).length;
+  scheduledNotificationsByEventId.clear();
+  eventIdsBySessionId.clear();
+  const dismissedCount = await dismissPresentedCookingNotifications();
+
+  return (
+    [...trackedCancelResults, ...nativeCancelResults].filter(Boolean).length +
+    dismissedCount
+  );
 };

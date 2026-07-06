@@ -173,7 +173,10 @@ export const getNextTimelineEvent = (
   now: ISODateString | Date = new Date(),
 ): CookingTimelineEvent | undefined =>
   generateTimeline(session, now).find(
-    (event) => event.status === "due" || event.status === "upcoming",
+    (event) =>
+      event.status === "missed" ||
+      event.status === "due" ||
+      event.status === "upcoming",
   );
 
 export const getTimelineProgress = (

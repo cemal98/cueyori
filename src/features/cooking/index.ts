@@ -17,6 +17,8 @@ export {
   cancelAllCookingNotifications,
   cancelSessionNotifications,
   cancelTimelineEventNotification,
+  configureCookingNotificationPresentation,
+  dismissPresentedCookingNotifications,
   requestCookingNotificationPermissions,
   scheduleSessionNotifications,
   scheduleTimelineEventNotification,
@@ -55,17 +57,20 @@ export {
   buildStageInput,
   buildStageUpdates,
   cookingActionTypes,
+  getSequentialStageOffsetMinutes,
   parseNonNegativeInteger,
   parsePositiveInteger,
   sortStageDrafts,
   validateDishFields,
   validateStageFields,
+  validateSequentialStageFields,
 } from "./utils/dishForm";
 export type {
   DishFormErrors,
   DishFormValidationMessages,
   DishStageDraft,
 } from "./utils/dishForm";
+export { getSessionDisplayTitle } from "./utils/sessionDisplay";
 export { createDemoCookingSession } from "./utils/createDemoCookingSession";
 export {
   completeCookingStage,

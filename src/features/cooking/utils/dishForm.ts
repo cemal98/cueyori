@@ -122,14 +122,54 @@ export const validateStageFields = (
   return errors;
 };
 
+const getLastStageOffsetMinutes = (stages: DishStageDraft[]): number =>
+  stages.reduce(
+    (lastOffset, stage) => Math.max(lastOffset, stage.offsetMinutes),
+    0,
+  );
+
+export const getSequentialStageOffsetMinutes = (
+  stages: DishStageDraft[],
+  delayMinutes: number,
+): number => getLastStageOffsetMinutes(stages) + delayMinutes;
+
+export const validateSequentialStageFields = (
+  stageTitle: string,
+  stageDelay: number | undefined,
+  durationMinutes: number | undefined,
+  existingStages: DishStageDraft[],
+  messages: DishFormValidationMessages = defaultValidationMessages,
+): DishFormErrors => {
+  const errors: DishFormErrors = {};
+
+  if (!stageTitle.trim()) {
+    errors.stageTitle = messages.stageTitleRequired;
+  }
+
+  if (stageDelay === undefined) {
+    errors.stageOffset = messages.stageOffsetNonNegative;
+  } else if (
+    durationMinutes !== undefined &&
+    getSequentialStageOffsetMinutes(existingStages, stageDelay) > durationMinutes
+  ) {
+    errors.stageOffset = messages.stageOffsetInsideDuration;
+  }
+
+  if (!durationMinutes) {
+    errors.duration = messages.durationFirst;
+  }
+
+  return errors;
+};
+
 const defaultValidationMessages: DishFormValidationMessages = {
   dishNameRequired: "Dish name is required.",
   durationPositive: "Duration must be a positive number.",
   stageRequired: "Add at least one stage.",
   stagesInsideDuration: "Every stage offset must fit inside dish duration.",
   stageTitleRequired: "Stage title is required.",
-  stageOffsetNonNegative: "Offset must be zero or more.",
-  stageOffsetInsideDuration: "Offset must fit inside dish duration.",
+  stageOffsetNonNegative: "Timing must be zero or more.",
+  stageOffsetInsideDuration: "Cue timing must fit inside dish duration.",
   durationFirst: "Add a valid dish duration first.",
 };
 

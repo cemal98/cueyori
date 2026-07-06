@@ -15,12 +15,14 @@ import {
   buildStageUpdates,
   cookingActionLabelKeys,
   cookingActionTypes,
+  getSequentialStageOffsetMinutes,
   parseNonNegativeInteger,
   parsePositiveInteger,
   sortStageDrafts,
   syncCookingSessionNotifications,
   useCookingStore,
   validateDishFields,
+  validateSequentialStageFields,
   validateStageFields,
   type CookingActionType,
   type CookingStage,
@@ -144,12 +146,21 @@ export default function EditDishScreen() {
   }, []);
 
   const handleAddOrUpdateStage = useCallback(() => {
-    const nextErrors = validateStageFields(
-      stageTitle,
-      stageOffsetMinutes,
-      durationMinutes,
-      validationMessages,
-    );
+    const nextErrors =
+      editingStageIndex === undefined
+        ? validateSequentialStageFields(
+            stageTitle,
+            stageOffsetMinutes,
+            durationMinutes,
+            stages,
+            validationMessages,
+          )
+        : validateStageFields(
+            stageTitle,
+            stageOffsetMinutes,
+            durationMinutes,
+            validationMessages,
+          );
 
     if (
       nextErrors.stageTitle ||
@@ -170,7 +181,10 @@ export default function EditDishScreen() {
           ? undefined
           : stages[editingStageIndex]?.id,
       title: stageTitle.trim(),
-      offsetMinutes: stageOffsetMinutes ?? 0,
+      offsetMinutes:
+        editingStageIndex === undefined
+          ? getSequentialStageOffsetMinutes(stages, stageOffsetMinutes ?? 0)
+          : stageOffsetMinutes ?? 0,
       actionType,
     };
 
@@ -430,9 +444,17 @@ export default function EditDishScreen() {
             editable={!isFinished && !isBusy}
             error={errors.stageOffset}
             keyboardType="number-pad"
-            label={t("stage.offsetLabel")}
+            label={
+              editingStageIndex === undefined
+                ? t("stage.delayLabel")
+                : t("stage.offsetLabel")
+            }
             onChangeText={setStageOffset}
-            placeholder={t("stage.offsetPlaceholder")}
+            placeholder={
+              editingStageIndex === undefined
+                ? t("stage.delayPlaceholder")
+                : t("stage.offsetPlaceholder")
+            }
             returnKeyType="done"
             value={stageOffset}
           />

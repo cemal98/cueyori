@@ -60,5 +60,29 @@ target 'CueYori' do
         end
       end
     end
+
+    installer.pods_project.targets.each do |target|
+      next unless target.name == 'fmt'
+
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+      end
+    end
+
+    ['debug', 'release'].each do |configuration|
+      xcconfig_path = File.join(
+        installer.sandbox.target_support_files_root,
+        'fmt',
+        "fmt.#{configuration}.xcconfig"
+      )
+      next unless File.exist?(xcconfig_path)
+
+      xcconfig = File.read(xcconfig_path)
+      xcconfig.gsub!(
+        'CLANG_CXX_LANGUAGE_STANDARD = c++20',
+        'CLANG_CXX_LANGUAGE_STANDARD = c++17'
+      )
+      File.write(xcconfig_path, xcconfig)
+    end
   end
 end

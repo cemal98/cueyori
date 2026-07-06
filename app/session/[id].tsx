@@ -10,11 +10,13 @@ import {
   formatRemainingTime,
   generateTimeline,
   getNextTimelineEvent,
+  getSessionDisplayTitle,
   getTimelineProgress,
   pauseCookingSession,
   resetCookingSession,
   resumeCookingSession,
   sessionStatusLabelKeys,
+  startCookingSession,
   StageRow,
   TimelineEventRow,
   uncompleteCookingStage,
@@ -29,6 +31,7 @@ import { colors, radii, spacing } from "../../src/theme";
 const sessionRefreshMs = 15000;
 
 type BusyAction =
+  | "start"
   | "pause"
   | "resume"
   | "finish"
@@ -227,6 +230,14 @@ export default function ActiveCookingSessionScreen() {
     void runSessionAction("resume", () => resumeCookingSession(session.id));
   }, [runSessionAction, session]);
 
+  const handleStart = useCallback(() => {
+    if (!session) {
+      return;
+    }
+
+    void runSessionAction("start", () => startCookingSession(session.id));
+  }, [runSessionAction, session]);
+
   const handleFinish = useCallback(() => {
     if (!session) {
       return;
@@ -292,9 +303,14 @@ export default function ActiveCookingSessionScreen() {
     );
   }
 
+  const canStart = session.status === "draft";
   const canPause = session.status === "active";
   const canResume = session.status === "paused";
   const controlsDisabled = Boolean(busyAction);
+  const sessionTitle = getSessionDisplayTitle(
+    session.title,
+    t("session.defaultTitle"),
+  );
   const progressDoneLabel = t("label.doneCount", {
     count: `${timelineProgress?.completedEvents ?? 0}/${
       timelineProgress?.totalEvents ?? stageStats.totalStages
@@ -317,7 +333,7 @@ export default function ActiveCookingSessionScreen() {
               {t(sessionStatusLabelKeys[session.status])}
             </AppText>
           </View>
-          <AppText variant="title">{session.title}</AppText>
+          <AppText variant="title">{sessionTitle}</AppText>
           <AppText tone="secondary" variant="body">
             {t("dish.dishesAndCues", {
               dishes: session.dishes.length,
@@ -368,6 +384,17 @@ export default function ActiveCookingSessionScreen() {
           </View>
 
           <View style={styles.controlGrid}>
+            {canStart ? (
+              <Button
+                disabled={controlsDisabled || stageStats.totalStages === 0}
+                haptic="confirm"
+                onPress={handleStart}
+                size="small"
+                title={t("action.startSession")}
+                variant="primary"
+              />
+            ) : null}
+
             {canPause ? (
               <Button
                 disabled={controlsDisabled}
@@ -391,7 +418,11 @@ export default function ActiveCookingSessionScreen() {
             ) : null}
 
             <Button
-              disabled={controlsDisabled || session.status === "finished"}
+              disabled={
+                controlsDisabled ||
+                session.status === "draft" ||
+                session.status === "finished"
+              }
               haptic="confirm"
               onPress={handleFinish}
               size="small"
@@ -508,7 +539,10 @@ export default function ActiveCookingSessionScreen() {
 
                       return (
                         <StageRow
-                          disabled={busyAction === `stage:${stage.id}`}
+                          disabled={
+                            session.status === "draft" ||
+                            busyAction === `stage:${stage.id}`
+                          }
                           event={event}
                           key={stage.id}
                           onToggle={() => {

@@ -14,13 +14,14 @@ import {
   buildStageInput,
   cookingActionLabelKeys,
   cookingActionTypes,
+  getSequentialStageOffsetMinutes,
   parseNonNegativeInteger,
   parsePositiveInteger,
   sortStageDrafts,
   syncCookingSessionNotifications,
   useCookingStore,
   validateDishFields,
-  validateStageFields,
+  validateSequentialStageFields,
   type CookingActionType,
   type DishFormErrors,
   type DishStageDraft,
@@ -69,7 +70,7 @@ export default function AddDishScreen() {
   );
 
   const durationMinutes = parsePositiveInteger(duration);
-  const stageOffsetMinutes = parseNonNegativeInteger(stageOffset);
+  const stageDelayMinutes = parseNonNegativeInteger(stageOffset);
 
   const handleBack = useCallback(() => {
     if (sessionId) {
@@ -86,10 +87,11 @@ export default function AddDishScreen() {
   }, [router, sessionId]);
 
   const handleAddStage = useCallback(() => {
-    const nextErrors = validateStageFields(
+    const nextErrors = validateSequentialStageFields(
       stageTitle,
-      stageOffsetMinutes,
+      stageDelayMinutes,
       durationMinutes,
+      stages,
       validationMessages,
     );
 
@@ -111,7 +113,10 @@ export default function AddDishScreen() {
         ...currentStages,
         {
           title: stageTitle.trim(),
-          offsetMinutes: stageOffsetMinutes ?? 0,
+          offsetMinutes: getSequentialStageOffsetMinutes(
+            currentStages,
+            stageDelayMinutes ?? 0,
+          ),
           actionType,
         },
       ]),
@@ -128,8 +133,9 @@ export default function AddDishScreen() {
   }, [
     actionType,
     durationMinutes,
-    stageOffsetMinutes,
+    stageDelayMinutes,
     stageTitle,
+    stages,
     validationMessages,
   ]);
 
@@ -173,6 +179,12 @@ export default function AddDishScreen() {
           dishName: t("error.addDishFailed"),
         }));
         return;
+      }
+
+      if (session.status === "active") {
+        useCookingStore.getState().updateDish(sessionId, createdDish.id, {
+          startedAt: new Date().toISOString(),
+        });
       }
 
       stages.forEach((stage, order) => {
@@ -278,9 +290,9 @@ export default function AddDishScreen() {
           <TextField
             error={errors.stageOffset}
             keyboardType="number-pad"
-            label={t("stage.offsetLabel")}
+            label={t("stage.delayLabel")}
             onChangeText={setStageOffset}
-            placeholder={t("stage.offsetPlaceholder")}
+            placeholder={t("stage.delayPlaceholder")}
             returnKeyType="done"
             value={stageOffset}
           />

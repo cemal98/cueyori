@@ -4,6 +4,11 @@ import { useRouter } from "expo-router";
 
 import { AppText, Button, Card, Screen } from "../src/components";
 import {
+  dismissPresentedCookingNotifications,
+  syncCookingSessionNotifications,
+  useCookingStore,
+} from "../src/features/cooking";
+import {
   usePreferencesStore,
   type LanguageCode,
   type ThemePreference,
@@ -33,6 +38,24 @@ export default function SettingsScreen() {
   const handleBack = useCallback(() => {
     router.back();
   }, [router]);
+
+  const handleLanguageChange = useCallback(
+    (nextLanguage: LanguageCode) => {
+      if (nextLanguage === language) {
+        return;
+      }
+
+      setLanguage(nextLanguage);
+      void dismissPresentedCookingNotifications();
+
+      const activeSession = useCookingStore.getState().getActiveSession();
+
+      if (activeSession) {
+        void syncCookingSessionNotifications(activeSession.id);
+      }
+    },
+    [language, setLanguage],
+  );
 
   return (
     <Screen>
@@ -76,7 +99,7 @@ export default function SettingsScreen() {
                     : t("settings.language.turkish")
                 }
                 onPress={() => {
-                  setLanguage(option);
+                  handleLanguageChange(option);
                 }}
               />
             ))}

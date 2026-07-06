@@ -1,14 +1,20 @@
+import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
+import { configureCookingNotificationPresentation } from "../src/features/cooking";
 import { usePreferencesStore } from "../src/features/preferences";
 import { colors } from "../src/theme";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   usePreferencesStore((state) => state.themePreference);
+
+  useEffect(() => {
+    configureCookingNotificationPresentation();
+  }, []);
 
   return (
     <GestureHandlerRootView style={styles.root}>

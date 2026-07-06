@@ -44,39 +44,45 @@ export function CueCard({
     );
   }
 
-  const isDue = event.status === "due";
+  const isAttention = event.status === "due" || event.status === "missed";
 
   return (
-    <Card tone={isDue ? "dark" : "default"}>
+    <Card tone={isAttention ? "dark" : "default"}>
       <View style={styles.stack}>
         <View style={styles.header}>
-          <AppText tone={isDue ? "inverse" : "secondary"} variant="label">
+          <AppText tone={isAttention ? "inverse" : "secondary"} variant="label">
             {t("label.nextCue")}
           </AppText>
           <TimerBadge
-            label={isDue ? t("label.timelineStatus.due") : t("label.in")}
-            tone={isDue ? "urgent" : "calm"}
+            label={
+              event.status === "missed"
+                ? t("label.timelineStatus.missed")
+                : event.status === "due"
+                  ? t("label.timelineStatus.due")
+                  : t("label.in")
+            }
+            tone={isAttention ? "urgent" : "calm"}
             value={remainingLabel ?? t("time.now")}
           />
         </View>
 
         <View style={styles.copy}>
-          <AppText tone={isDue ? "inverse" : "primary"} variant="title">
+          <AppText tone={isAttention ? "inverse" : "primary"} variant="title">
             {event.stageTitle}
           </AppText>
-          <AppText tone={isDue ? "inverse" : "secondary"} variant="body">
+          <AppText tone={isAttention ? "inverse" : "secondary"} variant="body">
             {event.dishName}
           </AppText>
         </View>
 
         <View style={styles.metaRow}>
-          <View style={[styles.actionChip, isDue && styles.actionChipDark]}>
-            <AppText tone={isDue ? "inverse" : "accent"} variant="caption">
+          <View style={[styles.actionChip, isAttention && styles.actionChipDark]}>
+            <AppText tone={isAttention ? "inverse" : "accent"} variant="caption">
               {t(cookingActionLabelKeys[event.actionType])}
             </AppText>
           </View>
           {event.heatLevel ? (
-            <AppText tone={isDue ? "inverse" : "muted"} variant="caption">
+            <AppText tone={isAttention ? "inverse" : "muted"} variant="caption">
               {t("cooking.heat", {
                 value: event.heatLevel.replace("_", " "),
               })}
@@ -91,7 +97,7 @@ export function CueCard({
             haptic="confirm"
             onPress={onActionPress}
             title={actionTitle}
-            variant={isDue ? "secondary" : "primary"}
+            variant={isAttention ? "secondary" : "primary"}
           />
         ) : null}
       </View>

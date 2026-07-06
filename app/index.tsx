@@ -6,12 +6,13 @@ import { CueYoriLoadingScreen } from "../src/components/brand/CueYoriLoadingScre
 import { AppText, Button, Card, Screen, StateCard } from "../src/components";
 import { useTranslation } from "../src/i18n";
 import {
-  createDemoCookingSession,
   CueCard,
   DishCard,
+  finishCookingSession,
   formatRemainingTime,
   getEventsByDish,
   getNextTimelineEvent,
+  getSessionDisplayTitle,
   getTimelineProgress,
   TimerBadge,
   useCookingStore,
@@ -56,24 +57,30 @@ export default function HomeScreen() {
     };
   }, []);
 
-  const activeSession = useMemo(
-    () => sessions.find((session) => session.status === "active"),
+  const currentSession = useMemo(
+    () =>
+      [...sessions]
+        .reverse()
+        .find((session) => session.status !== "finished"),
     [sessions],
   );
 
   const nextCue = useMemo(
-    () => (activeSession ? getNextTimelineEvent(activeSession, now) : undefined),
-    [activeSession, now],
+    () =>
+      currentSession?.status === "active"
+        ? getNextTimelineEvent(currentSession, now)
+        : undefined,
+    [currentSession, now],
   );
 
   const timelineProgress = useMemo(
-    () => (activeSession ? getTimelineProgress(activeSession, now) : undefined),
-    [activeSession, now],
+    () => (currentSession ? getTimelineProgress(currentSession, now) : undefined),
+    [currentSession, now],
   );
 
   const eventsByDish = useMemo(
-    () => (activeSession ? getEventsByDish(activeSession, now) : undefined),
-    [activeSession, now],
+    () => (currentSession ? getEventsByDish(currentSession, now) : undefined),
+    [currentSession, now],
   );
 
   const nextCueRemaining = nextCue
@@ -88,25 +95,41 @@ export default function HomeScreen() {
     setIsStartingSession(true);
 
     try {
-      await createDemoCookingSession();
+      const currentStore = useCookingStore.getState();
+      const activeSessionIds = currentStore.sessions
+        .filter((session) => session.status === "active")
+        .map((session) => session.id);
+
+      await Promise.all(activeSessionIds.map(finishCookingSession));
+
+      const session = useCookingStore
+        .getState()
+        .createSession();
+
       setNow(new Date());
+      router.push({
+        pathname: "/session/[id]",
+        params: {
+          id: session.id,
+        },
+      });
     } finally {
       setIsStartingSession(false);
     }
-  }, [isStartingSession]);
+  }, [isStartingSession, router]);
 
-  const handleOpenActiveSession = useCallback(() => {
-    if (!activeSession) {
+  const handleOpenCurrentSession = useCallback(() => {
+    if (!currentSession) {
       return;
     }
 
     router.push({
       pathname: "/session/[id]",
       params: {
-        id: activeSession.id,
+        id: currentSession.id,
       },
     });
-  }, [activeSession, router]);
+  }, [currentSession, router]);
 
   const handleOpenSettings = useCallback(() => {
     router.push("/settings" as never);
@@ -135,14 +158,14 @@ export default function HomeScreen() {
 
         <Button
           accessibilityHint={t("home.preparingMessage")}
-          accessibilityLabel={t("action.startCookingSession")}
+          accessibilityLabel={t("action.newSession")}
           disabled={isStartingSession}
           haptic="confirm"
           onPress={handleStartCookingSession}
           title={
             isStartingSession
               ? t("home.preparing")
-              : t("action.startCookingSession")
+              : t("action.newSession")
           }
         />
       </View>
@@ -155,22 +178,27 @@ export default function HomeScreen() {
         />
       ) : null}
 
-      {activeSession ? (
+      {currentSession ? (
         <View style={styles.dashboardStack}>
           <Card
             accessibilityHint={t("session.timelineTitle")}
-            accessibilityLabel={t("home.activeSession")}
-            onPress={handleOpenActiveSession}
+            accessibilityLabel={t("home.currentSession")}
+            onPress={handleOpenCurrentSession}
           >
             <View style={styles.sessionCard}>
               <View style={styles.sessionCopy}>
                 <AppText tone="secondary" variant="label">
-                  {t("home.activeSession")}
+                  {t("home.currentSession")}
                 </AppText>
-                <AppText variant="headline">{activeSession.title}</AppText>
+                <AppText variant="headline">
+                  {getSessionDisplayTitle(
+                    currentSession.title,
+                    t("session.defaultTitle"),
+                  )}
+                </AppText>
                 <AppText tone="secondary" variant="body">
                   {t("dish.dishesInMotion", {
-                    count: activeSession.dishes.length,
+                    count: currentSession.dishes.length,
                   })}
                 </AppText>
               </View>
@@ -188,15 +216,17 @@ export default function HomeScreen() {
             <View style={styles.sectionHeader}>
               <AppText variant="headline">{t("dish.activeDishes")}</AppText>
               <AppText tone="secondary" variant="caption">
-                {t("dish.total", { count: activeSession.dishes.length })}
+                {t("dish.total", { count: currentSession.dishes.length })}
               </AppText>
             </View>
 
             <View style={styles.dishList}>
-              {activeSession.dishes.map((dish) => {
+              {currentSession.dishes.map((dish) => {
                 const dishNextEvent = eventsByDish?.[dish.id]?.events.find(
                   (event) =>
-                    event.status === "due" || event.status === "upcoming",
+                    event.status === "missed" ||
+                    event.status === "due" ||
+                    event.status === "upcoming",
                 );
 
                 return (
@@ -212,7 +242,7 @@ export default function HomeScreen() {
         </View>
       ) : (
         <StateCard
-          actionTitle={t("action.startDemo")}
+          actionTitle={t("action.newSession")}
           message={t("empty.noActiveMessage")}
           onActionPress={handleStartCookingSession}
           title={t("empty.noActiveTitle")}
