@@ -71,4 +71,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundler: "metro",
     favicon: "./assets/brand/cueyori-app-icon.png",
   },
+  extra: {
+    ...config.extra,
+    eas: {
+      ...config.extra?.eas,
+      projectId: "d47d512b-d51e-4c88-8630-c54dea9af5b9",
+    },
+  },
 });
