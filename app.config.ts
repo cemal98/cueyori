@@ -18,8 +18,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   primaryColor: "#c7663a",
   icon: "./assets/brand/cueyori-app-icon.png",
   splash: {
-    image: "./assets/brand/cueyori-splash-source.png",
-    resizeMode: "contain",
     backgroundColor: "#f6efe5",
   },
   assetBundlePatterns: ["**/*"],
@@ -28,12 +26,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       "expo-splash-screen",
       {
-        image: "./assets/brand/cueyori-splash-source.png",
-        imageWidth: 260,
-        resizeMode: "contain",
         backgroundColor: "#f6efe5",
         dark: {
-          image: "./assets/brand/cueyori-app-icon.png",
           backgroundColor: "#15110f",
         },
       },
